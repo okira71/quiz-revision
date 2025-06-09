@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Quiz Littéraires</title>
+<title>Quiz Littéraires Avancé</title>
 <style>
     /* Thème Clair (par défaut) */
     :root {
@@ -22,6 +22,8 @@
         --container-bg: #ffffff;
         --progress-bg: #e0e0e0;
         --progress-fill: #4CAF50;
+        --input-bg: #fff;
+        --input-border: #ccc;
     }
 
     /* Thème Sombre */
@@ -35,6 +37,8 @@
         --container-bg: #1e1e1e;
         --progress-bg: #333;
         --progress-fill: #66BB6A;
+        --input-bg: #222;
+        --input-border: #555;
     }
 
     body {
@@ -56,7 +60,8 @@
         width: 100%;
         max-width: 580px;
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between; /* Pour espacer les éléments */
+        align-items: center;
         padding: 0 10px;
         margin-bottom: 20px;
     }
@@ -69,6 +74,11 @@
         border-radius: 4px;
         cursor: pointer;
         font-size: 0.9em;
+    }
+
+    #currentUserDisplay {
+        font-size: 0.9em;
+        color: var(--phrase-color);
     }
 
     .main-content {
@@ -86,7 +96,14 @@
     #highScoreDisplay {
         font-size: 1.1em;
         color: var(--phrase-color);
-        margin-bottom: 35px;
+        margin-bottom: 15px;
+        min-height: 20px;
+    }
+    #timerDisplay {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: var(--feedback-incorrect);
+        margin-bottom: 10px;
         min-height: 20px;
     }
 
@@ -94,15 +111,85 @@
     #selectionContainer h1 {
         font-size: 2.8em;
         color: var(--header-color);
+        margin-bottom: 30px;
     }
+
+    .menu-section {
+        background: var(--container-bg);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        text-align: left;
+    }
+    .menu-section h2 {
+        color: var(--header-color);
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-size: 1.6em;
+        border-bottom: 1px solid var(--select-border);
+        padding-bottom: 10px;
+    }
+    .menu-section label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: var(--text-color);
+    }
+    .menu-section input[type="text"],
+    .menu-section select {
+        width: calc(100% - 20px);
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid var(--input-border);
+        border-radius: 4px;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        font-size: 1em;
+    }
+    .menu-section button {
+        margin-top: 10px;
+        width: auto;
+        padding: 10px 20px;
+    }
+    .menu-section .profile-list button {
+        display: inline-block;
+        margin-right: 10px;
+        margin-bottom: 10px;
+        max-width: fit-content;
+        background: var(--button-secondary-bg);
+    }
+    .menu-section .profile-list button:hover {
+        background: var(--button-secondary-hover);
+    }
+
     .quiz-choice-btn {
-        font-size: 1.5em;
-        padding: 20px 30px;
+        font-size: 1.3em;
+        padding: 15px 25px;
         width: 100%;
         max-width: 400px;
-        margin-top: 20px;
+        margin-top: 15px;
+        margin-bottom: 15px;
     }
-    
+    .quiz-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    .quiz-options button {
+        flex: 1;
+        min-width: 120px;
+        padding: 10px 15px;
+        font-size: 0.9em;
+        background-color: var(--button-secondary-bg);
+    }
+    .quiz-options button.selected {
+        background-color: var(--button-primary-bg);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+
     /* --- Styles du Quiz --- */
     .progress-bar-container {
         width: 100%;
@@ -181,24 +268,92 @@
 
     .score { margin-top: 35px; font-size: 1.3em; color: var(--phrase-color); }
     #quizContainer { display: none; width: 100%; }
+    #statsContainer { display: none; width: 100%; }
+    #statsContainer h2 {
+        color: var(--header-color);
+        font-size: 2em;
+        margin-bottom: 20px;
+    }
+    #statsDetails p {
+        font-size: 1.1em;
+        margin-bottom: 10px;
+    }
+    #statsDetails ul {
+        list-style: none;
+        padding: 0;
+        margin-top: 20px;
+    }
+    #statsDetails ul li {
+        background: var(--container-bg);
+        padding: 10px;
+        margin-bottom: 8px;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .stat-correct { color: var(--feedback-correct); font-weight: bold; }
+    .stat-incorrect { color: var(--feedback-incorrect); font-weight: bold; }
+
 </style>
 </head>
 <body>
 
 <div class="header-container">
+    <span id="currentUserDisplay"></span>
     <button id="themeToggleBtn">Thème Sombre</button>
 </div>
 
 <div class="main-content">
     <div id="selectionContainer">
         <h1>Quiz Littéraires</h1>
-        <button id="startFiguresBtn" class="quiz-choice-btn">🧠 Figures de Style</button>
-        <button id="startTonalitesBtn" class="quiz-choice-btn">📘 Tonalités Littéraires</button>
+
+        <div class="menu-section">
+            <h2>Gérer les Profils</h2>
+            <label for="usernameInput">Nom d'utilisateur :</label>
+            <input type="text" id="usernameInput" placeholder="Entrez votre nom" />
+            <button id="createUserBtn">Créer Nouveau Profil</button>
+            <button id="loadUserBtn">Charger Profil</button>
+            <div id="profileList" class="profile-list" style="margin-top: 15px;">
+                <!-- Les profils chargés seront insérés ici -->
+            </div>
+            <p style="font-size: 0.9em; margin-top: 15px;">Profil actif : <strong id="activeUserProfile">Aucun</strong></p>
+            <button id="viewStatsBtn" style="display: none;">Voir mes Statistiques</button>
+        </div>
+
+        <div class="menu-section">
+            <h2>Choisir un Quiz</h2>
+            <button id="startFiguresBtn" class="quiz-choice-btn">🧠 Figures de Style</button>
+            <button id="startTonalitesBtn" class="quiz-choice-btn">📘 Tonalités Littéraires</button>
+        </div>
+
+        <div class="menu-section" id="gameOptionsSection" style="display: none;">
+            <h2>Options de Jeu</h2>
+            <label>Mode de Jeu :</label>
+            <div class="quiz-options" id="gameModeOptions">
+                <button data-mode="normal" class="selected">Normal</button>
+                <button data-mode="survival">Survie</button>
+                <button data-mode="timetrial">Contre-la-montre</button>
+                <button data-mode="revision">Révision</button>
+            </div>
+
+            <label for="difficultySelect" style="margin-top: 15px;">Difficulté :</label>
+            <div class="quiz-options" id="difficultyOptions">
+                <button data-difficulty="any" class="selected">Aléatoire</button>
+                <button data-difficulty="easy">Facile</button>
+                <button data-difficulty="medium">Moyen</button>
+                <button data-difficulty="hard">Difficile</button>
+            </div>
+            
+            <button id="startSelectedQuizBtn" style="margin-top: 20px;">Démarrer le Quiz</button>
+        </div>
     </div>
 
     <div id="quizContainer">
         <h1 id="quizTitle"></h1>
         <div id="highScoreDisplay"></div>
+        <div id="timerDisplay"></div> <!-- Nouveau : Affichage du timer -->
         <div class="progress-bar-container">
             <div class="progress-bar-fill" id="progressBarFill"></div>
         </div>
@@ -215,7 +370,19 @@
         <div id="endQuizBtns" style="display: none;">
             <button id="replayBtn">Rejouer</button>
             <button id="backToMenuBtn">Retour au Menu</button>
+            <button id="viewQuizStatsBtn">Statistiques du Quiz</button> <!-- Nouveau bouton pour stats du quiz terminé -->
         </div>
+    </div>
+
+    <div id="statsContainer">
+        <h2>Statistiques de <span id="statsUserName"></span></h2>
+        <div id="statsDetails">
+            <!-- Les statistiques détaillées seront insérées ici -->
+            <p>Score total le plus élevé pour <span id="statsForQuizTitle"></span>: <span id="statsHighScore"></span></p>
+            <h3>Performance par Question (top 5 des plus ratées) :</h3>
+            <ul id="failedQuestionsList"></ul>
+        </div>
+        <button id="backToMainMenuFromStatsBtn">Retour au Menu Principal</button>
     </div>
 </div>
 
@@ -223,12 +390,27 @@
     // --- GESTION DES ÉLÉMENTS DU DOM ---
     const selectionContainer = document.getElementById('selectionContainer');
     const quizContainer = document.getElementById('quizContainer');
+    const statsContainer = document.getElementById('statsContainer');
+
+    const usernameInput = document.getElementById('usernameInput');
+    const createUserBtn = document.getElementById('createUserBtn');
+    const loadUserBtn = document.getElementById('loadUserBtn');
+    const profileList = document.getElementById('profileList');
+    const activeUserProfileDisplay = document.getElementById('activeUserProfile');
+    const currentUserDisplay = document.getElementById('currentUserDisplay'); // En-tête global
+    const viewStatsBtn = document.getElementById('viewStatsBtn');
+
     const startFiguresBtn = document.getElementById('startFiguresBtn');
     const startTonalitesBtn = document.getElementById('startTonalitesBtn');
+    const gameOptionsSection = document.getElementById('gameOptionsSection');
+    const gameModeOptions = document.getElementById('gameModeOptions');
+    const difficultyOptions = document.getElementById('difficultyOptions');
+    const startSelectedQuizBtn = document.getElementById('startSelectedQuizBtn');
     
-    const quizTitle = document.getElementById('quizTitle');
+    const quizTitleEl = document.getElementById('quizTitle');
     const highScoreDisplay = document.getElementById('highScoreDisplay');
-    const progressBarFill = document.getElementById('progressBarFill'); // Nouveau : barre de progression
+    const timerDisplay = document.getElementById('timerDisplay'); // Nouveau : Affichage du timer
+    const progressBarFill = document.getElementById('progressBarFill');
     const phraseEl = document.getElementById('phrase');
     const form = document.getElementById('form');
     const answerSelect = document.getElementById('answer');
@@ -241,81 +423,274 @@
     const endQuizBtns = document.getElementById('endQuizBtns');
     const replayBtn = document.getElementById('replayBtn');
     const backToMenuBtn = document.getElementById('backToMenuBtn');
+    const viewQuizStatsBtn = document.getElementById('viewQuizStatsBtn'); // Bouton pour voir stats du quiz terminé
+    const backToMainMenuFromStatsBtn = document.getElementById('backToMainMenuFromStatsBtn');
     const themeToggleBtn = document.getElementById('themeToggleBtn');
 
-    // --- VARIABLES GLOBALES DU QUIZ ---
-    let currentQuizData = null; // Stockera les données du quiz actuellement chargé
-    let questionsForThisQuiz = []; // Les questions sélectionnées pour la partie actuelle
+    const statsUserName = document.getElementById('statsUserName');
+    const statsForQuizTitle = document.getElementById('statsForQuizTitle');
+    const statsHighScore = document.getElementById('statsHighScore');
+    const failedQuestionsList = document.getElementById('failedQuestionsList');
+
+    // --- VARIABLES GLOBALES DU QUIZ ET DU PROFIL ---
+    let allQuizData = {}; // Stockera tous les quiz chargés
+    let currentQuizData = null; // Données du quiz actuellement sélectionné
+    let questionsForThisQuiz = []; // Questions pour la session de quiz actuelle
     let currentQuestionIndex = 0;
     let score = 0;
-    
-    // --- FONCTION DE CHARGEMENT DES QUIZ DEPUIS DES FICHIERS JSON ---
-    async function fetchQuizData(quizFileName) {
-        try {
-            const response = await fetch(quizFileName);
-            if (!response.ok) {
-                throw new Error(`Erreur de chargement du quiz : ${response.statusText}`);
+
+    let activeUser = null; // L'objet du profil utilisateur actif
+    let users = {}; // Tous les profils d'utilisateurs chargés depuis localStorage
+
+    let selectedGameMode = 'normal';
+    let selectedDifficulty = 'any';
+    let quizTimer = null; // Pour le mode contre-la-montre
+    const TIME_PER_QUESTION_SECONDS = 15; // Temps par question en mode contre-la-montre
+
+    // --- PONDÉRATION DES SCORES PAR DIFFICULTÉ ---
+    const DIFFICULTY_POINTS = {
+        'easy': 1,
+        'medium': 2,
+        'hard': 3
+    };
+
+    // --- FONCTIONS DE GESTION DES PROFILS UTILISATEUR ---
+
+    function loadUsers() {
+        const storedUsers = localStorage.getItem('quizUsers');
+        if (storedUsers) {
+            users = JSON.parse(storedUsers);
+            const activeUserId = localStorage.getItem('activeQuizUser');
+            if (activeUserId && users[activeUserId]) {
+                activeUser = users[activeUserId];
+                updateActiveUserDisplay();
+                viewStatsBtn.style.display = 'block';
             }
-            return await response.json();
-        } catch (error) {
-            console.error("Impossible de charger les données du quiz :", error);
-            feedbackEl.className = 'feedback incorrect';
-            feedbackEl.textContent = "Une erreur est survenue lors du chargement du quiz. Veuillez réessayer.";
-            return null;
         }
+        renderProfileList();
     }
 
-    // --- LOGIQUE MULTI-QUIZ ---
-    async function launchQuiz(quizFilePath) {
-        const data = await fetchQuizData(quizFilePath);
-        if (data) {
-            currentQuizData = data;
-            selectionContainer.style.display = 'none';
-            quizContainer.style.display = 'block';
-            quizTitle.textContent = currentQuizData.title;
-            loadHighScore();
-            startQuiz();
+    function saveUsers() {
+        localStorage.setItem('quizUsers', JSON.stringify(users));
+        if (activeUser) {
+            localStorage.setItem('activeQuizUser', activeUser.id);
         } else {
-            // Si le chargement échoue, revenir au menu
-            showMenu();
+            localStorage.removeItem('activeQuizUser');
         }
     }
 
-    startFiguresBtn.addEventListener('click', () => launchQuiz('quiz-figures.json'));
-    startTonalitesBtn.addEventListener('click', () => launchQuiz('quiz-tonalites.json'));
-    backToMenuBtn.addEventListener('click', showMenu);
-    
-    function showMenu() {
-        quizContainer.style.display = 'none';
-        selectionContainer.style.display = 'block';
-        quizTitle.textContent = '';
-        highScoreDisplay.textContent = '';
-        progressBarFill.style.width = '0%'; // Réinitialiser la barre de progression
+    function createUser() {
+        const username = usernameInput.value.trim();
+        if (username.length < 3) {
+            alert("Le nom d'utilisateur doit contenir au moins 3 caractères."); // Utiliser une modale custom dans une vraie app
+            return;
+        }
+        if (users[username]) {
+            alert("Ce nom d'utilisateur existe déjà. Veuillez en choisir un autre ou le charger.");
+            return;
+        }
+
+        const newUser = {
+            id: username, // Pour la simplicité, l'ID est le nom d'utilisateur
+            name: username,
+            quizStats: {} // Stockera les performances de chaque quiz
+        };
+        users[username] = newUser;
+        activeUser = newUser;
+        saveUsers();
+        updateActiveUserDisplay();
+        renderProfileList();
+        alert(`Profil '${username}' créé et sélectionné !`);
+        viewStatsBtn.style.display = 'block';
     }
 
-    // --- LOGIQUE DU HIGH SCORE ---
-    function getHighScoreKey() {
-        // La clé inclut maintenant l'ID du quiz pour des records séparés
-        return `quizHighScore_${currentQuizData.quizId}`;
+    function loadUser(username) {
+        if (!users[username]) {
+            alert("Profil non trouvé.");
+            return;
+        }
+        activeUser = users[username];
+        saveUsers();
+        updateActiveUserDisplay();
+        alert(`Profil '${username}' chargé !`);
+        viewStatsBtn.style.display = 'block';
+    }
+
+    function updateActiveUserDisplay() {
+        if (activeUser) {
+            activeUserProfileDisplay.textContent = activeUser.name;
+            currentUserDisplay.textContent = `Bienvenue, ${activeUser.name} !`;
+        } else {
+            activeUserProfileDisplay.textContent = 'Aucun';
+            currentUserDisplay.textContent = '';
+        }
+    }
+
+    function renderProfileList() {
+        profileList.innerHTML = '';
+        for (const userId in users) {
+            const userBtn = document.createElement('button');
+            userBtn.textContent = users[userId].name;
+            userBtn.addEventListener('click', () => loadUser(userId));
+            profileList.appendChild(userBtn);
+        }
+    }
+
+    // --- FONCTIONS DE GESTION DES QUIZ (Chargement & Sélection) ---
+
+    async function fetchAllQuizData() {
+        const quizFiles = {
+            'figures': 'quiz-figures.json',
+            'tonalites': 'quiz-tonalites.json'
+        };
+
+        for (const quizId in quizFiles) {
+            try {
+                const response = await fetch(quizFiles[quizId]);
+                if (!response.ok) {
+                    throw new Error(`Erreur de chargement du quiz ${quizId}: ${response.statusText}`);
+                }
+                const data = await response.json();
+                allQuizData[quizId] = data;
+            } catch (error) {
+                console.error(`Impossible de charger les données du quiz ${quizId}:`, error);
+                alert(`Une erreur est survenue lors du chargement du quiz '${quizId}'.`); // Utiliser une modale custom
+            }
+        }
+    }
+
+    function selectQuiz(quizId) {
+        if (!activeUser) {
+            alert("Veuillez créer ou charger un profil utilisateur avant de choisir un quiz.");
+            return;
+        }
+        currentQuizData = allQuizData[quizId];
+        if (currentQuizData) {
+            // Afficher les options de jeu
+            gameOptionsSection.style.display = 'block';
+            // Mettre à jour l'affichage du meilleur score pour le quiz sélectionné
+            loadHighScore();
+        }
+    }
+
+    // --- LOGIQUE DU HIGH SCORE ET STATS UTILISATEUR ---
+
+    function getQuizStatsForCurrentUser(quizId) {
+        if (!activeUser) return null;
+        if (!activeUser.quizStats[quizId]) {
+            activeUser.quizStats[quizId] = {
+                highScore: 0,
+                totalPlayed: 0,
+                totalCorrect: 0,
+                totalQuestionsAnswered: 0,
+                questionPerformance: {} // { "prompt_hash": { correct: X, incorrect: Y } }
+            };
+        }
+        return activeUser.quizStats[quizId];
     }
 
     function loadHighScore() {
-        const highScore = parseInt(localStorage.getItem(getHighScoreKey()) || '0', 10);
-        // Utilise la longueur par défaut du quiz ou le nombre total de questions si moins
+        if (!currentQuizData || !activeUser) {
+            highScoreDisplay.textContent = '';
+            return;
+        }
+        const stats = getQuizStatsForCurrentUser(currentQuizData.quizId);
         const quizLength = currentQuizData.defaultLength || currentQuizData.questions.length;
-        highScoreDisplay.textContent = `🏆 Record : ${highScore} / ${quizLength}`;
+        highScoreDisplay.textContent = `🏆 Record (${activeUser.name}) : ${stats.highScore} / ${quizLength}`;
     }
 
-    function saveHighScore() {
-        const key = getHighScoreKey();
-        const currentHighScore = parseInt(localStorage.getItem(key) || '0', 10);
-        if (score > currentHighScore) {
-            localStorage.setItem(key, score);
-            loadHighScore(); // Met à jour l'affichage du record
-            return true;
+    function saveQuizStats(quizId, finalScore, totalQuestionsPlayed, questionResults) {
+        if (!activeUser) return;
+        const stats = getQuizStatsForCurrentUser(quizId);
+        
+        stats.totalPlayed++;
+        stats.totalCorrect += finalScore;
+        stats.totalQuestionsAnswered += totalQuestionsPlayed;
+
+        // Mise à jour du meilleur score
+        if (finalScore > stats.highScore) {
+            stats.highScore = finalScore;
+            // Retourne vrai si c'est un nouveau record
         }
-        return false;
+
+        // Mise à jour des performances par question
+        for (const promptHash in questionResults) {
+            if (!stats.questionPerformance[promptHash]) {
+                stats.questionPerformance[promptHash] = { correct: 0, incorrect: 0 };
+            }
+            if (questionResults[promptHash] === 'correct') {
+                stats.questionPerformance[promptHash].correct++;
+            } else {
+                stats.questionPerformance[promptHash].incorrect++;
+            }
+        }
+        saveUsers(); // Sauvegarde tout l'objet users
     }
+
+    function displayOverallStats() {
+        if (!activeUser) {
+            alert("Veuillez charger un profil pour voir les statistiques.");
+            return;
+        }
+        selectionContainer.style.display = 'none';
+        quizContainer.style.display = 'none';
+        statsContainer.style.display = 'block';
+
+        statsUserName.textContent = activeUser.name;
+        statsForQuizTitle.textContent = "tous les quiz"; // Afficher les stats générales
+
+        // Calculer les stats globales (exemple)
+        let totalHighScoreSum = 0;
+        let totalQuizzesPlayed = 0;
+        let mostFailedQuestions = {}; // { prompt: { correct: X, incorrect: Y, quizId: Z } }
+
+        for (const quizId in activeUser.quizStats) {
+            const stats = activeUser.quizStats[quizId];
+            totalHighScoreSum += stats.highScore;
+            totalQuizzesPlayed += stats.totalPlayed;
+
+            for (const promptHash in stats.questionPerformance) {
+                const qPerf = stats.questionPerformance[promptHash];
+                const questionData = findQuestionByHash(quizId, promptHash); // Fonction utilitaire à créer
+                if (questionData) {
+                    const prompt = questionData.prompt;
+                    if (!mostFailedQuestions[prompt]) {
+                        mostFailedQuestions[prompt] = { correct: 0, incorrect: 0 };
+                    }
+                    mostFailedQuestions[prompt].correct += qPerf.correct;
+                    mostFailedQuestions[prompt].incorrect += qPerf.incorrect;
+                }
+            }
+        }
+
+        statsHighScore.textContent = `${totalHighScoreSum} points (sur les meilleurs scores cumulés)`;
+        // Afficher les questions les plus ratées
+        const sortedFailedQuestions = Object.entries(mostFailedQuestions)
+            .filter(([, data]) => data.incorrect > data.correct) // Filtrer celles où incorrect > correct
+            .sort((a, b) => (b[1].incorrect - b[1].correct) - (a[1].incorrect - a[1].correct)) // Trier par différence
+            .slice(0, 5); // Top 5
+
+        failedQuestionsList.innerHTML = '';
+        if (sortedFailedQuestions.length > 0) {
+            sortedFailedQuestions.forEach(([prompt, data]) => {
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>"${prompt}"</strong> <br> (Correct: <span class="stat-correct">${data.correct}</span>, Incorrect: <span class="stat-incorrect">${data.incorrect}</span>)`;
+                failedQuestionsList.appendChild(li);
+            });
+        } else {
+            failedQuestionsList.innerHTML = '<li>Aucune question n\'a été ratée plus d\'une fois. Continuez comme ça !</li>';
+        }
+    }
+
+    // Utility to find question data by hash (for stats display)
+    function findQuestionByHash(quizId, promptHash) {
+        const quiz = allQuizData[quizId];
+        if (quiz) {
+            return quiz.questions.find(q => stringToHash(q.prompt) === promptHash);
+        }
+        return null;
+    }
+
 
     // --- LOGIQUE DU QUIZ (Générique) ---
 
@@ -328,9 +703,8 @@
 
     function populateSelectOptions() {
         answerSelect.innerHTML = '<option value="" disabled selected>Choisis une réponse</option>';
-        // Récupère toutes les réponses possibles du quiz actuel
         const answers = currentQuizData.questions.map(q => q.answer);
-        const uniqueAnswers = [...new Set(answers)].sort(); // Tri alphabétique
+        const uniqueAnswers = [...new Set(answers)].sort();
         uniqueAnswers.forEach(answer => {
             const option = document.createElement('option');
             option.value = answer;
@@ -339,22 +713,93 @@
         });
     }
 
+    function stringToHash(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return hash.toString();
+    }
+
     function startQuiz() {
-        // Mélange toutes les questions disponibles
-        const allQuestions = [...currentQuizData.questions];
-        shuffleArray(allQuestions);
-        
-        // Sélectionne le nombre de questions défini par defaultLength ou toutes
-        const quizLength = currentQuizData.defaultLength ? 
-                           Math.min(currentQuizData.defaultLength, allQuestions.length) :
-                           allQuestions.length;
-        questionsForThisQuiz = allQuestions.slice(0, quizLength);
-        
+        if (!currentQuizData) {
+            alert("Veuillez sélectionner un quiz.");
+            return;
+        }
+        if (!activeUser) {
+            alert("Veuillez créer ou charger un profil utilisateur.");
+            return;
+        }
+
+        // Filtration des questions par difficulté
+        let availableQuestions = [...currentQuizData.questions];
+        if (selectedDifficulty !== 'any') {
+            availableQuestions = availableQuestions.filter(q => q.difficulty === selectedDifficulty);
+        }
+
+        // Logique du mode Révision (pour plus tard)
+        if (selectedGameMode === 'revision') {
+            const stats = getQuizStatsForCurrentUser(currentQuizData.quizId);
+            const failedQuestionHashes = Object.keys(stats.questionPerformance).filter(hash => 
+                stats.questionPerformance[hash].incorrect > stats.questionPerformance[hash].correct
+            );
+            if (failedQuestionHashes.length > 0) {
+                // Créer un tableau de questions basées sur les hachages des questions ratées
+                questionsForThisQuiz = failedQuestionHashes.map(hash => 
+                    availableQuestions.find(q => stringToHash(q.prompt) === hash)
+                ).filter(q => q !== undefined); // Filtrer les undefined si une question n'est plus trouvée
+                
+                // Si les questions de révision sont filtrées par difficulté, s'assurer qu'elles correspondent
+                if (selectedDifficulty !== 'any') {
+                    questionsForThisQuiz = questionsForThisQuiz.filter(q => q.difficulty === selectedDifficulty);
+                }
+                
+                if (questionsForThisQuiz.length === 0) {
+                     alert("Pas de questions à réviser avec la difficulté sélectionnée, ou toutes les questions ratées ont été maîtrisées !");
+                     showMenu();
+                     return;
+                }
+            } else {
+                alert("Vous n'avez pas encore de questions à réviser pour ce quiz.");
+                showMenu();
+                return;
+            }
+        } else {
+            // Pour les autres modes, mélanger et prendre le nombre par défaut ou toutes
+            shuffleArray(availableQuestions);
+            const quizLength = currentQuizData.defaultLength ? 
+                               Math.min(currentQuizData.defaultLength, availableQuestions.length) :
+                               availableQuestions.length;
+            questionsForThisQuiz = availableQuestions.slice(0, quizLength);
+        }
+
+        if (questionsForThisQuiz.length === 0) {
+            alert("Aucune question ne correspond à vos critères de sélection (difficulté, etc.) pour ce quiz.");
+            showMenu();
+            return;
+        }
+
+        selectionContainer.style.display = 'none';
+        quizContainer.style.display = 'block';
+        quizTitleEl.textContent = currentQuizData.title;
+        loadHighScore();
+        timerDisplay.style.display = 'none'; // Cacher par défaut
+
         currentQuestionIndex = 0;
         score = 0;
         
         populateSelectOptions();
         updateQuestion();
+
+        // Démarrer le timer si en mode contre-la-montre
+        if (selectedGameMode === 'timetrial') {
+            startTimer();
+            timerDisplay.style.display = 'block';
+        } else {
+            stopTimer(); // S'assurer que le timer est arrêté si non en mode contre-la-montre
+        }
     }
     
     function updateQuestion() {
@@ -362,12 +807,17 @@
         nextBtn.style.display = 'none';
         explanationBtn.style.display = 'none';
 
+        if (currentQuestionIndex >= questionsForThisQuiz.length) {
+            endQuiz();
+            return;
+        }
+
         const currentQuestion = questionsForThisQuiz[currentQuestionIndex];
         phraseEl.textContent = currentQuestion.prompt;
-        answerSelect.value = ""; // Réinitialise la sélection
+        answerSelect.value = "";
         feedbackEl.innerHTML = "";
         feedbackEl.className = 'feedback';
-        scoreEl.textContent = `Score : ${score} / ${currentQuestionIndex}`;
+        scoreEl.textContent = `Score : ${score} / ${currentQuestionIndex} (Q. ${currentQuestionIndex + 1}/${questionsForThisQuiz.length})`;
         form.style.display = "block";
         submitBtn.style.display = "block";
         submitBtn.disabled = false;
@@ -375,32 +825,83 @@
         // Met à jour la barre de progression
         const progress = (currentQuestionIndex / questionsForThisQuiz.length) * 100;
         progressBarFill.style.width = `${progress}%`;
+
+        // Réinitialiser le timer pour la nouvelle question si en mode contre-la-montre
+        if (selectedGameMode === 'timetrial') {
+            resetTimerForQuestion();
+        }
+    }
+
+    let questionTimer = null;
+    let timeLeftForQuestion = TIME_PER_QUESTION_SECONDS;
+
+    function startTimer() {
+        resetTimerForQuestion(); // Démarre le timer pour la première question
+        // Le timer principal gère l'affichage du temps restant pour la question actuelle
+        // Pas besoin de timer global pour le quiz entier pour l'instant.
+    }
+
+    function resetTimerForQuestion() {
+        clearInterval(questionTimer);
+        timeLeftForQuestion = TIME_PER_QUESTION_SECONDS;
+        timerDisplay.textContent = `Temps restant : ${timeLeftForQuestion}s`;
+        questionTimer = setInterval(() => {
+            timeLeftForQuestion--;
+            timerDisplay.textContent = `Temps restant : ${timeLeftForQuestion}s`;
+            if (timeLeftForQuestion <= 0) {
+                clearInterval(questionTimer);
+                // Simuler une mauvaise réponse ou passer à la question suivante
+                handleAnswer(false); // Réponse incorrecte due au temps écoulé
+                nextBtn.click(); // Passe à la question suivante
+            }
+        }, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(questionTimer);
+        timerDisplay.textContent = '';
+    }
+
+    function handleAnswer(isCorrect) {
+        const currentQuestion = questionsForThisQuiz[currentQuestionIndex];
+        const promptHash = stringToHash(currentQuestion.prompt);
+        let questionResults = {}; // Pour stocker le résultat de cette question pour saveQuizStats
+        
+        if (isCorrect) {
+            score += DIFFICULTY_POINTS[currentQuestion.difficulty || 'easy']; // Ajoute des points pondérés
+            feedbackEl.className = 'feedback correct';
+            feedbackEl.textContent = "✅ Bonne réponse !";
+            questionResults[promptHash] = 'correct';
+        } else {
+            feedbackEl.className = 'feedback incorrect';
+            feedbackEl.innerHTML = `❌ Mauvaise réponse.<br>La bonne réponse était : <strong>${currentQuestion.answer}</strong>.`;
+            if (currentQuestion.explication) {
+                explanationBtn.style.display = "block";
+                explanationBtn.textContent = "Voir l'explication";
+            }
+            questionResults[promptHash] = 'incorrect';
+
+            if (selectedGameMode === 'survival') {
+                endQuiz(true); // Termine le quiz immédiatement en mode survie
+                return;
+            }
+        }
+        
+        saveQuizStats(currentQuizData.quizId, score, currentQuestionIndex + 1, questionResults); // Sauvegarde les stats à chaque question
+        nextBtn.style.display = "block";
+        scoreEl.textContent = `Score : ${score} / ${currentQuestionIndex + 1} (Q. ${currentQuestionIndex + 1}/${questionsForThisQuiz.length})`;
+        form.style.display = "none";
     }
 
     form.addEventListener("submit", function(e) {
         e.preventDefault();
         submitBtn.disabled = true;
+        stopTimer(); // Arrête le timer quand l'utilisateur répond
         const userAnswer = answerSelect.value;
         const currentQuestion = questionsForThisQuiz[currentQuestionIndex];
         const correctAnswer = currentQuestion.answer;
 
-        if (userAnswer === correctAnswer) {
-            score++;
-            feedbackEl.className = 'feedback correct';
-            feedbackEl.textContent = "✅ Bonne réponse !";
-        } else {
-            feedbackEl.className = 'feedback incorrect';
-            feedbackEl.innerHTML = `❌ Mauvaise réponse.<br>La bonne réponse était : <strong>${correctAnswer}</strong>.`;
-            // Affiche le bouton d'explication uniquement si la réponse est fausse et qu'une explication existe
-            if (currentQuestion.explication) {
-                explanationBtn.style.display = "block";
-                explanationBtn.textContent = "Voir l'explication";
-            }
-        }
-        
-        nextBtn.style.display = "block";
-        scoreEl.textContent = `Score : ${score} / ${currentQuestionIndex + 1}`;
-        form.style.display = "none";
+        handleAnswer(userAnswer === correctAnswer);
     });
     
     explanationBtn.addEventListener("click", () => {
@@ -411,7 +912,6 @@
             feedbackEl.innerHTML += explicationText;
             explanationBtn.textContent = "Cacher l'explication";
         } else {
-            // Réinitialise le message de feedback à l'état initial (avant explication)
             feedbackEl.innerHTML = `❌ Mauvaise réponse.<br>La bonne réponse était : <strong>${currentQuestion.answer}</strong>.`;
             explanationBtn.textContent = "Voir l'explication";
         }
@@ -419,25 +919,31 @@
 
     nextBtn.addEventListener("click", () => {
         currentQuestionIndex++;
-        if (currentQuestionIndex >= questionsForThisQuiz.length) {
-            endQuiz();
-        } else {
-            updateQuestion();
-        }
+        updateQuestion();
     });
     
-    function endQuiz() {
-        const isNewHighScore = saveHighScore();
+    function endQuiz(survivalFailed = false) {
+        stopTimer(); // S'assurer que le timer est arrêté
+
         const quizLength = questionsForThisQuiz.length;
         phraseEl.textContent = "🎉 Quiz terminé !";
-        
-        // Met à jour la barre de progression à 100% à la fin
         progressBarFill.style.width = '100%';
 
         let finalMessage = `Ton score final est de ${score} sur ${quizLength}.`;
+        if (survivalFailed) {
+            finalMessage = `Game Over ! Tu as échoué en mode Survie. Ton score était de ${score}.`;
+        }
+
+        const stats = getQuizStatsForCurrentUser(currentQuizData.quizId);
+        // Note: saveQuizStats est appelée à chaque question soumise, donc le high score est déjà à jour.
+        const isNewHighScore = (score > stats.highScore); // Véricle si c'est un nouveau record
+        
         if (isNewHighScore) {
             finalMessage += "\n\n✨ Nouveau record personnel ! Félicitations ! ✨";
+            stats.highScore = score; // S'assurer que le high score est mis à jour
         }
+        saveUsers(); // Sauvegarde finale des stats
+
         feedbackEl.textContent = finalMessage;
         
         form.style.display = "none";
@@ -445,9 +951,47 @@
         nextBtn.style.display = 'none';
         endQuizBtns.style.display = 'block';
         scoreEl.textContent = `Score final : ${score} / ${quizLength}`;
+        viewQuizStatsBtn.style.display = 'block'; // Afficher le bouton pour voir les stats du quiz terminé
     }
 
-    replayBtn.addEventListener('click', startQuiz);
+    replayBtn.addEventListener('click', startQuiz); // Rejoue avec les mêmes options
+    viewQuizStatsBtn.addEventListener('click', () => {
+        displayOverallStats(); // Affiche les statistiques après un quiz terminé
+        statsForQuizTitle.textContent = currentQuizData.title;
+        statsHighScore.textContent = getQuizStatsForCurrentUser(currentQuizData.quizId).highScore;
+        // Ici, vous pouvez affiner l'affichage des questions ratées pour le quiz spécifique
+        const stats = getQuizStatsForCurrentUser(currentQuizData.quizId);
+        const mostFailedQuestions = {};
+        for (const promptHash in stats.questionPerformance) {
+            const qPerf = stats.questionPerformance[promptHash];
+            const questionData = findQuestionByHash(currentQuizData.quizId, promptHash);
+            if (questionData) {
+                const prompt = questionData.prompt;
+                if (!mostFailedQuestions[prompt]) {
+                    mostFailedQuestions[prompt] = { correct: 0, incorrect: 0 };
+                }
+                mostFailedQuestions[prompt].correct += qPerf.correct;
+                mostFailedQuestions[prompt].incorrect += qPerf.incorrect;
+            }
+        }
+        const sortedFailedQuestions = Object.entries(mostFailedQuestions)
+            .filter(([, data]) => data.incorrect > 0) // Toutes celles qui ont été ratées au moins une fois
+            .sort((a, b) => (b[1].incorrect - b[1].correct) - (a[1].incorrect - a[1].correct)) // Trier par différence
+            .slice(0, 5); // Top 5
+        
+        failedQuestionsList.innerHTML = '';
+        if (sortedFailedQuestions.length > 0) {
+            sortedFailedQuestions.forEach(([prompt, data]) => {
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>"${prompt}"</strong> <br> (Correct: <span class="stat-correct">${data.correct}</span>, Incorrect: <span class="stat-incorrect">${data.incorrect}</span>)`;
+                failedQuestionsList.appendChild(li);
+            });
+        } else {
+            failedQuestionsList.innerHTML = '<li>Aucune question n\'a été ratée. Excellent travail !</li>';
+        }
+    });
+
+    backToMainMenuFromStatsBtn.addEventListener('click', showMenu);
 
     // --- LOGIQUE DU THÈME SOMBRE ---
     function applyTheme(theme) {
@@ -460,13 +1004,50 @@
         applyTheme(currentTheme === 'light' ? 'dark' : 'light');
     });
 
+    // --- GESTION DES SÉLECTIONS D'OPTIONS DE JEU ---
+    gameModeOptions.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            Array.from(gameModeOptions.children).forEach(btn => btn.classList.remove('selected'));
+            e.target.classList.add('selected');
+            selectedGameMode = e.target.dataset.mode;
+        }
+    });
+
+    difficultyOptions.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            Array.from(difficultyOptions.children).forEach(btn => btn.classList.remove('selected'));
+            e.target.classList.add('selected');
+            selectedDifficulty = e.target.dataset.difficulty;
+        }
+    });
+
+    startFiguresBtn.addEventListener('click', () => selectQuiz('figures'));
+    startTonalitesBtn.addEventListener('click', () => selectQuiz('tonalites'));
+    startSelectedQuizBtn.addEventListener('click', startQuiz);
+
+
     // --- Initialisation de la page ---
-    function initialize() {
+    async function initialize() {
         const savedTheme = localStorage.getItem('quizTheme') || 'light';
         applyTheme(savedTheme);
+        await fetchAllQuizData(); // Charger tous les quiz au démarrage
+        loadUsers(); // Charger les profils utilisateur
         showMenu();
     }
     
+    // Événements des boutons de profil
+    createUserBtn.addEventListener('click', createUser);
+    loadUserBtn.addEventListener('click', () => {
+        const username = usernameInput.value.trim();
+        if (username) {
+            loadUser(username);
+        } else {
+            alert("Veuillez entrer un nom d'utilisateur à charger.");
+        }
+    });
+    viewStatsBtn.addEventListener('click', displayOverallStats);
+
+
     initialize();
 </script>
 </body>

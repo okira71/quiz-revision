@@ -433,7 +433,118 @@
     const failedQuestionsList = document.getElementById('failedQuestionsList');
 
     // --- VARIABLES GLOBALES DU QUIZ ET DU PROFIL ---
-    let allQuizData = {}; // Stockera tous les quiz chargés
+    // allQuizData will now contain mock data directly embedded for demonstration.
+    // In a production environment, you would fetch these from actual JSON files.
+    let allQuizData = {
+        'figures': {
+            quizId: 'figures',
+            title: 'Figures de Style',
+            defaultLength: 5,
+            questions: [
+                {
+                    prompt: "L'allitération est la répétition de consonnes.",
+                    answer: "Allitération",
+                    difficulty: "easy",
+                    explication: "L'allitération est une figure de style qui consiste en la répétition d'un même son consonantique dans une suite de mots."
+                },
+                {
+                    prompt: "La répétition d'une même voyelle est une...",
+                    answer: "Assonance",
+                    difficulty: "easy",
+                    explication: "L'assonance est la répétition d'une même voyelle dans une suite de mots."
+                },
+                {
+                    prompt: "Figure de style où l'on atténue la réalité, pour adoucir une idée jugée trop brutale.",
+                    answer: "Euphémisme",
+                    difficulty: "medium",
+                    explication: "L'euphémisme consiste à employer un mot ou une expression moins forte que celle que l'on attendrait, afin d'atténuer le caractère désagréable, brutal ou choquant de la réalité."
+                },
+                {
+                    prompt: "Expression qui utilise un mot dans un sens figuré par analogie, sans outil de comparaison.",
+                    answer: "Métaphore",
+                    difficulty: "medium",
+                    explication: "La métaphore est une figure de style consistant à rapprocher deux éléments sans utiliser de mot de comparaison explicite (comme, tel, pareil à, etc.)."
+                },
+                {
+                    prompt: "Figure de style qui consiste à dire le contraire de ce que l'on pense en employant un ton, un geste ou un contexte qui indique le véritable sens.",
+                    answer: "Ironie",
+                    difficulty: "hard",
+                    explication: "L'ironie est une figure de rhétorique qui consiste à affirmer le contraire de ce que l'on veut faire entendre, en s'appuyant sur l'implicite ou le non-dit pour que le destinataire comprenne le véritable sens."
+                },
+                {
+                    prompt: "Répétition d'un même mot ou groupe de mots en début de phrase.",
+                    answer: "Anaphore",
+                    difficulty: "easy",
+                    explication: "L'anaphore est une figure de style qui consiste à répéter un même mot ou groupe de mots en début de phrase, de vers ou de proposition successive."
+                },
+                {
+                    prompt: "Exagération des traits d'une personne ou d'une chose pour produire un effet comique ou critique.",
+                    answer: "Caricature",
+                    difficulty: "medium",
+                    explication: "La caricature est une déformation grotesque des traits caractéristiques d'une personne ou d'une chose pour produire un effet comique ou satirique."
+                },
+                {
+                    prompt: "Consiste à exprimer une idée par son contraire, en utilisant un ton ou une expression qui indique le vrai sens.",
+                    answer: "Antiphrase",
+                    difficulty: "hard",
+                    explication: "L'antiphrase est une figure de style consistant à exprimer une idée par son contraire dans une intention ironique, humoristique ou euphémique."
+                }
+            ]
+        },
+        'tonalites': {
+            quizId: 'tonalites',
+            title: 'Tonalités Littéraires',
+            defaultLength: 5,
+            questions: [
+                {
+                    prompt: "Tonalité qui vise à émouvoir le lecteur en suscitant la pitié et la tristesse.",
+                    answer: "Pathétique",
+                    difficulty: "easy",
+                    explication: "La tonalité pathétique cherche à provoquer une forte émotion chez le lecteur, en particulier la pitié et la tristesse face à la souffrance ou au malheur."
+                },
+                {
+                    prompt: "Tonalité qui exprime un sentiment d'indignation et de révolte, souvent avec violence.",
+                    answer: "Polémique",
+                    difficulty: "medium",
+                    explication: "La tonalité polémique se caractérise par l'expression d'un désaccord fort, d'une critique virulente, et vise à provoquer le débat."
+                },
+                {
+                    prompt: "Tonalité qui cherche à faire rire ou sourire, souvent par l'absurde ou la satire.",
+                    answer: "Comique",
+                    difficulty: "easy",
+                    explication: "La tonalité comique utilise diverses techniques (mots, situations, caractères) pour amuser et détendre le lecteur."
+                },
+                {
+                    prompt: "Tonalité qui déforme la réalité pour la rendre grotesque et effrayante.",
+                    answer: "Fantastique",
+                    difficulty: "hard",
+                    explication: "La tonalité fantastique plonge le lecteur dans l'incertitude face à des événements inexplicables, à la frontière entre le réel et le surnaturel."
+                },
+                {
+                    prompt: "Tonalité qui exprime la joie, l'enthousiasme et la célébration.",
+                    answer: "Lyrique",
+                    difficulty: "medium",
+                    explication: "La tonalité lyrique est l'expression des sentiments personnels, souvent intenses, de l'auteur (amour, joie, tristesse, nostalgie)."
+                },
+                {
+                    prompt: "Tonalité qui vise à instruire, à informer ou à exposer des connaissances.",
+                    answer: "Didactique",
+                    difficulty: "easy",
+                    explication: "La tonalité didactique a pour objectif d'enseigner et de transmettre un savoir, une morale, ou des principes."
+                },
+                {
+                    prompt: "Tonalité qui met en scène des situations extrêmes et des personnages aux passions violentes.",
+                    answer: "Dramatique",
+                    difficulty: "hard",
+                    explication: "La tonalité dramatique est caractéristique des œuvres où les événements s'enchaînent de manière tendue, aboutissant souvent à une crise ou un dénouement intense."
+                }
+            ]
+        }
+    }; 
+    // allQuizData will now contain mock data directly embedded for demonstration.
+    // In a production environment, you would fetch these from actual JSON files.
+    // let allQuizData = {}; // Original declaration, now replaced.
+
     let currentQuizData = null; // Données du quiz actuellement sélectionné
     let questionsForThisQuiz = []; // Questions pour la session de quiz actuelle
     let currentQuestionIndex = 0;
@@ -499,7 +610,6 @@
         activeUser = newUser;
         saveUsers();
         updateActiveUserDisplay();
-        renderProfileList();
         alert(`Profil '${username}' créé et sélectionné !`);
         viewStatsBtn.style.display = 'block';
     }
@@ -538,6 +648,8 @@
 
     // --- FONCTIONS DE GESTION DES QUIZ (Chargement & Sélection) ---
 
+    // Removed the fetchAllQuizData function as data is now directly embedded.
+    /*
     async function fetchAllQuizData() {
         const quizFiles = {
             'figures': 'quiz-figures.json',
@@ -558,6 +670,7 @@
             }
         }
     }
+    */
 
     function selectQuiz(quizId) {
         if (!activeUser) {
@@ -723,6 +836,24 @@
         return hash.toString();
     }
 
+    function showMenu() {
+        selectionContainer.style.display = 'block';
+        quizContainer.style.display = 'none';
+        statsContainer.style.display = 'none';
+        gameOptionsSection.style.display = 'none'; // Hide game options when returning to main menu
+        // Reset selected game mode and difficulty to defaults for next selection
+        selectedGameMode = 'normal';
+        selectedDifficulty = 'any';
+        Array.from(gameModeOptions.children).forEach(btn => {
+            btn.classList.remove('selected');
+            if (btn.dataset.mode === 'normal') btn.classList.add('selected');
+        });
+        Array.from(difficultyOptions.children).forEach(btn => {
+            btn.classList.remove('selected');
+            if (btn.dataset.difficulty === 'any') btn.classList.add('selected');
+        });
+    }
+
     function startQuiz() {
         if (!currentQuizData) {
             alert("Veuillez sélectionner un quiz.");
@@ -751,7 +882,7 @@
                     availableQuestions.find(q => stringToHash(q.prompt) === hash)
                 ).filter(q => q !== undefined); // Filtrer les undefined si une question n'est plus trouvée
                 
-                // Si les questions de révision sont filtrées par difficulté, s'assurer qu'elles correspondent
+                // If revision questions are filtered by difficulty, ensure they match
                 if (selectedDifficulty !== 'any') {
                     questionsForThisQuiz = questionsForThisQuiz.filter(q => q.difficulty === selectedDifficulty);
                 }
@@ -1030,7 +1161,7 @@
     async function initialize() {
         const savedTheme = localStorage.getItem('quizTheme') || 'light';
         applyTheme(savedTheme);
-        await fetchAllQuizData(); // Charger tous les quiz au démarrage
+        // await fetchAllQuizData(); // Removed fetch call as data is now directly embedded.
         loadUsers(); // Charger les profils utilisateur
         showMenu();
     }

@@ -623,30 +623,6 @@
 
     // --- FONCTIONS DE GESTION DES QUIZ (Chargement & Sélection) ---
 
-    // La fonction fetchAllQuizData n'est plus nécessaire car les données sont intégrées directement.
-    /*
-    async function fetchAllQuizData() {
-        const quizFiles = {
-            'figures': 'uploaded:quiz-figures.json',
-            'tonalites': 'uploaded:quiz-tonalites.json'
-        };
-
-        for (const quizId in quizFiles) {
-            try {
-                const response = await fetch(quizFiles[quizId]); 
-                if (!response.ok) {
-                    throw new Error(`Erreur de chargement du quiz ${quizId}: ${response.statusText}`);
-                }
-                const data = await response.json();
-                allQuizData[quizId] = data;
-            } catch (error) {
-                console.error(`Impossible de charger les données du quiz ${quizId}:`, error);
-                alert(`Une erreur est survenue lors du chargement du quiz '${quizId}'. Veuillez vous assurer que les fichiers JSON sont accessibles.`); 
-            }
-        }
-    }
-    */
-
     function selectQuiz(quizId) {
         if (!activeUser) {
             alert("Veuillez créer ou charger un profil utilisateur avant de choisir un quiz.");
@@ -663,10 +639,16 @@
 
     // --- LOGIQUE DU HIGH SCORE ET STATS UTILISATEUR ---
 
-    function getQuizStatsForCurrentUser(quizId) {
+    function getQuizStatsForCurrentUser(quizId, gameMode, difficulty) {
         if (!activeUser) return null;
         if (!activeUser.quizStats[quizId]) {
-            activeUser.quizStats[quizId] = {
+            activeUser.quizStats[quizId] = {};
+        }
+        if (!activeUser.quizStats[quizId][gameMode]) {
+            activeUser.quizStats[quizId][gameMode] = {};
+        }
+        if (!activeUser.quizStats[quizId][gameMode][difficulty]) {
+            activeUser.quizStats[quizId][gameMode][difficulty] = {
                 highScore: 0,
                 totalPlayed: 0,
                 totalCorrect: 0,
@@ -674,7 +656,7 @@
                 questionPerformance: {} // { "prompt_hash": { correct: X, incorrect: Y } }
             };
         }
-        return activeUser.quizStats[quizId];
+        return activeUser.quizStats[quizId][gameMode][difficulty];
     }
 
     function loadHighScore() {
@@ -682,14 +664,14 @@
             highScoreDisplay.textContent = '';
             return;
         }
-        const stats = getQuizStatsForCurrentUser(currentQuizData.quizId);
+        const stats = getQuizStatsForCurrentUser(currentQuizData.quizId, selectedGameMode, selectedDifficulty);
         const quizLength = currentQuizData.defaultLength || currentQuizData.questions.length;
-        highScoreDisplay.textContent = `🏆 Record (${activeUser.name}) : ${stats.highScore} / ${quizLength}`;
+        highScoreDisplay.textContent = `🏆 Record (${activeUser.name} - ${selectedGameMode}, ${selectedDifficulty}) : ${stats.highScore} / ${quizLength}`;
     }
 
     function saveQuizStats(quizId, finalScore, totalQuestionsPlayed, questionResults) {
         if (!activeUser) return;
-        const stats = getQuizStatsForCurrentUser(quizId);
+        const stats = getQuizStatsForCurrentUser(quizId, selectedGameMode, selectedDifficulty);
         
         stats.totalPlayed++;
         stats.totalCorrect += finalScore;
@@ -698,7 +680,6 @@
         // Mise à jour du meilleur score
         if (finalScore > stats.highScore) {
             stats.highScore = finalScore;
-            // Retourne vrai si c'est un nouveau record
         }
 
         // Mise à jour des performances par question
@@ -727,36 +708,37 @@
         statsUserName.textContent = activeUser.name;
         statsForQuizTitle.textContent = "tous les quiz"; // Afficher les stats générales
 
-        // Calculer les stats globales (exemple)
         let totalHighScoreSum = 0;
-        let totalQuizzesPlayed = 0;
-        let mostFailedQuestions = {}; // { prompt: { correct: X, incorrect: Y, quizId: Z } }
+        let mostFailedQuestions = {}; // { prompt: { correct: X, incorrect: Y } }
 
         for (const quizId in activeUser.quizStats) {
-            const stats = activeUser.quizStats[quizId];
-            totalHighScoreSum += stats.highScore;
-            totalQuizzesPlayed += stats.totalPlayed;
+            for (const mode in activeUser.quizStats[quizId]) {
+                for (const difficulty in activeUser.quizStats[quizId][mode]) {
+                    const stats = activeUser.quizStats[quizId][mode][difficulty];
+                    totalHighScoreSum += stats.highScore; // Cumuler les meilleurs scores
 
-            for (const promptHash in stats.questionPerformance) {
-                const qPerf = stats.questionPerformance[promptHash];
-                const questionData = findQuestionByHash(quizId, promptHash); // Fonction utilitaire à créer
-                if (questionData) {
-                    const prompt = questionData.prompt;
-                    if (!mostFailedQuestions[prompt]) {
-                        mostFailedQuestions[prompt] = { correct: 0, incorrect: 0 };
+                    for (const promptHash in stats.questionPerformance) {
+                        const qPerf = stats.questionPerformance[promptHash];
+                        const questionData = findQuestionByHash(quizId, promptHash); 
+                        if (questionData) {
+                            const prompt = questionData.prompt;
+                            if (!mostFailedQuestions[prompt]) {
+                                mostFailedQuestions[prompt] = { correct: 0, incorrect: 0 };
+                            }
+                            mostFailedQuestions[prompt].correct += qPerf.correct;
+                            mostFailedQuestions[prompt].incorrect += qPerf.incorrect;
+                        }
                     }
-                    mostFailedQuestions[prompt].correct += qPerf.correct;
-                    mostFailedQuestions[prompt].incorrect += qPerf.incorrect;
                 }
             }
         }
 
         statsHighScore.textContent = `${totalHighScoreSum} points (sur les meilleurs scores cumulés)`;
-        // Afficher les questions les plus ratées
+        
         const sortedFailedQuestions = Object.entries(mostFailedQuestions)
-            .filter(([, data]) => data.incorrect > data.correct) // Filtrer celles où incorrect > correct
-            .sort((a, b) => (b[1].incorrect - b[1].correct) - (a[1].incorrect - a[1].correct)) // Trier par différence
-            .slice(0, 5); // Top 5
+            .filter(([, data]) => data.incorrect > data.correct) 
+            .sort((a, b) => (b[1].incorrect - b[1].correct) - (a[1].incorrect - a[1].correct)) 
+            .slice(0, 5); 
 
         failedQuestionsList.innerHTML = '';
         if (sortedFailedQuestions.length > 0) {
@@ -847,7 +829,7 @@
 
         // Logique du mode Révision (pour plus tard)
         if (selectedGameMode === 'revision') {
-            const stats = getQuizStatsForCurrentUser(currentQuizData.quizId);
+            const stats = getQuizStatsForCurrentUser(currentQuizData.quizId, selectedGameMode, selectedDifficulty);
             const failedQuestionHashes = Object.keys(stats.questionPerformance).filter(hash => 
                 stats.questionPerformance[hash].incorrect > stats.questionPerformance[hash].correct
             );
@@ -890,7 +872,7 @@
         selectionContainer.style.display = 'none';
         quizContainer.style.display = 'block';
         quizTitleEl.textContent = currentQuizData.title;
-        loadHighScore();
+        loadHighScore(); // Appel sans arguments, car les valeurs sont globales
         timerDisplay.style.display = 'none'; // Cacher par défaut
 
         currentQuestionIndex = 0;
@@ -1040,9 +1022,9 @@
             finalMessage = `Game Over ! Tu as échoué en mode Survie. Ton score était de ${score}.`;
         }
 
-        const stats = getQuizStatsForCurrentUser(currentQuizData.quizId);
+        const stats = getQuizStatsForCurrentUser(currentQuizData.quizId, selectedGameMode, selectedDifficulty);
         // Note: saveQuizStats est appelée à chaque question soumise, donc le high score est déjà à jour.
-        const isNewHighScore = (score > stats.highScore); // Véricle si c'est un nouveau record
+        const isNewHighScore = (score > stats.highScore); // Vérifie si c'est un nouveau record
         
         if (isNewHighScore) {
             finalMessage += "\n\n✨ Nouveau record personnel ! Félicitations ! ✨";
@@ -1063,10 +1045,11 @@
     replayBtn.addEventListener('click', startQuiz); // Rejoue avec les mêmes options
     viewQuizStatsBtn.addEventListener('click', () => {
         displayOverallStats(); // Affiche les statistiques après un quiz terminé
-        statsForQuizTitle.textContent = currentQuizData.title;
-        statsHighScore.textContent = getQuizStatsForCurrentUser(currentQuizData.quizId).highScore;
-        // Ici, vous pouvez affiner l'affichage des questions ratées pour le quiz spécifique
-        const stats = getQuizStatsForCurrentUser(currentQuizData.quizId);
+        // Pour les statistiques spécifiques à ce quiz, mode et difficulté:
+        statsForQuizTitle.textContent = `${currentQuizData.title} (${selectedGameMode}, ${selectedDifficulty})`;
+        statsHighScore.textContent = getQuizStatsForCurrentUser(currentQuizData.quizId, selectedGameMode, selectedDifficulty).highScore;
+        
+        const stats = getQuizStatsForCurrentUser(currentQuizData.quizId, selectedGameMode, selectedDifficulty);
         const mostFailedQuestions = {};
         for (const promptHash in stats.questionPerformance) {
             const qPerf = stats.questionPerformance[promptHash];
@@ -1081,9 +1064,9 @@
             }
         }
         const sortedFailedQuestions = Object.entries(mostFailedQuestions)
-            .filter(([, data]) => data.incorrect > 0) // Toutes celles qui ont été ratées au moins une fois
-            .sort((a, b) => (b[1].incorrect - b[1].correct) - (a[1].incorrect - a[1].correct)) // Trier par différence
-            .slice(0, 5); // Top 5
+            .filter(([, data]) => data.incorrect > 0) 
+            .sort((a, b) => (b[1].incorrect - b[1].correct) - (a[1].incorrect - a[1].correct)) 
+            .slice(0, 5); 
         
         failedQuestionsList.innerHTML = '';
         if (sortedFailedQuestions.length > 0) {
@@ -1116,6 +1099,7 @@
             Array.from(gameModeOptions.children).forEach(btn => btn.classList.remove('selected'));
             e.target.classList.add('selected');
             selectedGameMode = e.target.dataset.mode;
+            loadHighScore(); // Mettre à jour l'affichage du meilleur score pour la nouvelle sélection
         }
     });
 
@@ -1124,6 +1108,7 @@
             Array.from(difficultyOptions.children).forEach(btn => btn.classList.remove('selected'));
             e.target.classList.add('selected');
             selectedDifficulty = e.target.dataset.difficulty;
+            loadHighScore(); // Mettre à jour l'affichage du meilleur score pour la nouvelle sélection
         }
     });
 
@@ -1136,7 +1121,6 @@
     async function initialize() {
         const savedTheme = localStorage.getItem('quizTheme') || 'light';
         applyTheme(savedTheme);
-        // La fonction fetchAllQuizData n'est plus appelée ici car les données sont directement dans allQuizData
         loadUsers(); // Charger les profils utilisateur
         showMenu();
     }

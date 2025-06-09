@@ -433,7 +433,92 @@
     const failedQuestionsList = document.getElementById('failedQuestionsList');
 
     // --- VARIABLES GLOBALES DU QUIZ ET DU PROFIL ---
-    let allQuizData = {}; // Sera rempli par les fichiers JSON
+    // Les données des quiz sont maintenant directement intégrées pour éviter les erreurs de chargement.
+    let allQuizData = {
+        'figures': {
+            "title": "🧠 Figures de Style",
+            "quizId": "figures",
+            "defaultLength": 10,
+            "questions": [
+                { "prompt": "La mer est un miroir.", "answer": "métaphore", "explication": "La mer est comparée directement à un miroir sans outil de comparaison.", "difficulty": "easy" },
+                { "prompt": "Ses yeux étaient deux étoiles brillantes.", "answer": "métaphore", "explication": "Les yeux sont directement comparés à des étoiles sans outil de comparaison.", "difficulty": "easy" },
+                { "prompt": "Cette femme est une véritable vipère.", "answer": "métaphore", "explication": "La femme est directement associée à une vipère pour signifier sa méchanceté.", "difficulty": "medium" },
+                { "prompt": "Le temps, c'est de l'argent.", "answer": "métaphore", "explication": "Association directe entre le temps et l'argent pour en souligner la valeur.", "difficulty": "easy" },
+                { "prompt": "Il est rusé comme un renard.", "answer": "comparaison", "explication": "On utilise 'comme' pour comparer deux choses.", "difficulty": "easy" },
+                { "prompt": "Ton rire est doux comme une mélodie.", "answer": "comparaison", "explication": "Utilisation de 'comme' pour comparer le rire à une mélodie.", "difficulty": "easy" },
+                { "prompt": "Ses cheveux sont blonds comme les blés.", "answer": "comparaison", "explication": "L'outil 'comme' est utilisé pour comparer la couleur des cheveux à celle du blé.", "difficulty": "medium" },
+                { "prompt": "Il est fort tel un chêne.", "answer": "comparaison", "explication": "L'outil 'tel' est utilisé pour comparer la force de la personne à celle d'un chêne.", "difficulty": "medium" },
+                { "prompt": "Le vent hurlait dans la nuit.", "answer": "personnification", "explication": "Le vent est décrit comme s'il avait une action humaine : hurler.", "difficulty": "easy" },
+                { "prompt": "Les arbres murmuraient des secrets.", "answer": "personnification", "explication": "Les arbres sont dotés de la capacité humaine de murmurer des secrets.", "difficulty": "easy" },
+                { "prompt": "La fortune lui souriait.", "answer": "personnification", "explication": "On attribue une action humaine ('sourire') à un concept abstrait ('la fortune').", "difficulty": "medium" },
+                { "prompt": "Le soleil caressait les champs.", "answer": "personnification", "explication": "Le soleil est doté d'une action humaine : caresser.", "difficulty": "medium" },
+                { "prompt": "Je suis mort de fatigue.", "answer": "hyperbole", "explication": "Exagération forte pour insister sur la fatigue.", "difficulty": "easy" },
+                { "prompt": "J'ai une faim de loup.", "answer": "hyperbole", "explication": "Exagération pour exprimer une très grande faim.", "difficulty": "easy" },
+                { "prompt": "Il a versé des torrents de larmes.", "answer": "hyperbole", "explication": "Exagération de la quantité de larmes pour montrer une grande tristesse.", "difficulty": "medium" },
+                { "prompt": "J'ai des tonnes de travail.", "answer": "hyperbole", "explication": "Exagération pour insister sur la quantité de travail.", "difficulty": "medium" },
+                { "prompt": "Cette obscure clarté.", "answer": "oxymore", "explication": "Association de mots contraires : 'obscure' et 'clarté'.", "difficulty": "medium" },
+                { "prompt": "Un silence éloquent.", "answer": "oxymore", "explication": "Association des termes 'silence' et 'éloquent' qui sont contraires.", "difficulty": "medium" },
+                { "prompt": "Une douce violence.", "answer": "oxymore", "explication": "Association de 'douce' et 'violence', termes opposés.", "difficulty": "hard" },
+                { "prompt": "Un mort-vivant.", "answer": "oxymore", "explication": "Les termes 'mort' et 'vivant' sont directement opposés et accolés.", "difficulty": "hard" },
+                { "prompt": "Le roi des animaux.", "answer": "périphrase", "explication": "Expression qui remplace 'Le lion'.", "difficulty": "easy" },
+                { "prompt": "La ville Lumière.", "answer": "périphrase", "explication": "Expression qui remplace 'Paris'.", "difficulty": "easy" },
+                { "prompt": "Le septième art.", "answer": "périphrase", "explication": "Expression qui remplace 'le cinéma'.", "difficulty": "medium" },
+                { "prompt": "L'île de Beauté.", "answer": "périphrase", "explication": "Expression qui désigne 'la Corse'.", "difficulty": "medium" },
+                { "prompt": "Va, je ne te hais point.", "answer": "litote", "explication": "On dit moins ('ne pas haïr') pour suggérer plus ('aimer').", "difficulty": "hard" },
+                { "prompt": "Ce n'est pas mal du tout.", "answer": "litote", "explication": "Dire 'pas mal' pour signifier 'très bien'.", "difficulty": "medium" },
+                { "prompt": "Il n'est pas sot.", "answer": "litote", "explication": "Négation de 'sot' pour affirmer qu'il est intelligent.", "difficulty": "medium" },
+                { "prompt": "Ce plat n'est pas mauvais.", "answer": "litote", "explication": "Atténuation pour dire que le plat est bon.", "difficulty": "easy" },
+                { "prompt": "Il a rejoint les étoiles.", "answer": "euphémisme", "explication": "Adoucissement pour dire qu'il est mort.", "difficulty": "easy" },
+                { "prompt": "Il nous a quittés.", "answer": "euphémisme", "explication": "Adoucissement pour dire qu'il est décédé.", "difficulty": "easy" },
+                { "prompt": "Les personnes du troisième âge.", "answer": "euphémisme", "explication": "Expression adoucie pour parler des personnes âgées.", "difficulty": "medium" },
+                { "prompt": "Un technicien de surface.", "answer": "euphémisme", "explication": "Expression valorisante pour désigner un balayeur.", "difficulty": "medium" },
+                { "prompt": "Je suis le roi, le maître, le dieu.", "answer": "gradation", "explication": "Liste de mots de force croissante.", "difficulty": "medium" },
+                { "prompt": "Elle marcha, courut, s'envola.", "answer": "gradation", "explication": "Énumération d'actions d'intensité croissante.", "difficulty": "medium" },
+                { "prompt": "Il gémit, il crie, il hurle.", "answer": "gradation", "explication": "La progression de l'intensité du son est croissante.", "difficulty": "hard" },
+                { "prompt": "C'est un roc, c'est un pic, c'est un cap !", "answer": "gradation", "explication": "Célèbre gradation de Cyrano de Bergerac, d'intensité croissante.", "difficulty": "hard" },
+                { "prompt": "Jour après jour, il revenait. Jour après jour, l'espoir grandissait.", "answer": "anaphore", "explication": "Répétition de 'Jour après jour' en début de phrase pour insister.", "difficulty": "medium" },
+                { "prompt": "Rien ne l'arrêtait. Rien ne le freinait. Rien ne le déviait.", "answer": "anaphore", "explication": "Répétition de 'Rien ne' en début de phrase.", "difficulty": "medium" },
+                { "prompt": "Paris ! Paris outragé ! Paris brisé ! Paris martyrisé ! mais Paris libéré !", "answer": "anaphore", "explication": "Répétition du mot 'Paris' en début de membre de phrase.", "difficulty": "hard" },
+                { "prompt": "Il aime la vie mais déteste la mort.", "answer": "antithèse", "explication": "Opposition forte entre 'aime la vie' et 'déteste la mort'.", "difficulty": "easy" },
+                { "prompt": "Je t'aime, je te hais.", "answer": "antithèse", "explication": "Opposition forte entre 'aimer' et 'haïr'.", "difficulty": "easy" },
+                { "prompt": "Être ou ne pas être, telle est la question.", "answer": "antithèse", "explication": "Opposition fondamentale entre les concepts 'être' et 'ne pas être'.", "difficulty": "medium" },
+                { "prompt": "Lire un Zola.", "answer": "métonymie", "explication": "On utilise le nom de l'auteur pour désigner son œuvre.", "difficulty": "easy" },
+                { "prompt": "Boire un bordeaux.", "answer": "métonymie", "explication": "On utilise le nom de la région pour désigner le vin.", "difficulty": "easy" },
+                { "prompt": "Respecter le drapeau.", "answer": "métonymie", "explication": "Le symbole ('drapeau') est utilisé pour désigner le pays ou la nation.", "difficulty": "medium" },
+                { "prompt": "J'ai acheté une nouvelle voile.", "answer": "synecdoque", "explication": "On utilise une partie ('voile') pour désigner le tout ('bateau').", "difficulty": "medium" },
+                { "prompt": "Il y a quarante têtes dans la classe.", "answer": "synecdoque", "explication": "Une partie ('têtes') désigne le tout (les élèves).", "difficulty": "medium" },
+                { "prompt": "Les mortels ne peuvent échapper à leur destin.", "answer": "synecdoque", "explication": "Le terme 'mortels' (une caractéristique) est utilisé pour désigner 'les humains' (le tout).", "difficulty": "hard" },
+                { "prompt": "Je te promets... le bonheur... la joie...", "answer": "ellipses", "explication": "Omission volontaire de mots pour créer un effet de suspension ou d'émotion.", "difficulty": "medium" },
+                { "prompt": "Il est parti... sans un mot...", "answer": "ellipses", "explication": "Omission des mots pour laisser le lecteur imaginer la suite ou l'émotion.", "difficulty": "medium" },
+                { "prompt": "Heureux qui, comme Ulysse, a fait un beau voyage...", "answer": "ellipses", "explication": "Sous-entendu : 'Heureux est celui qui...' par allusion.", "difficulty": "hard" },
+                { "prompt": "Monter en haut.", "answer": "pléonasme", "explication": "Répétition inutile de l'idée de hauteur, car 'monter' implique déjà 'en haut'.", "difficulty": "easy" },
+                { "prompt": "Prévoir à l'avance.", "answer": "pléonasme", "explication": "Le verbe 'prévoir' contient déjà l'idée d''à l'avance'.", "difficulty": "easy" },
+                { "prompt": "Un bref résumé.", "answer": "pléonasme", "explication": "Un résumé est par définition bref, la répétition est stylistique.", "difficulty": "medium" },
+                { "prompt": "Ah, c'est du joli !", "answer": "antiphrase", "explication": "Dire l'inverse de ce que l'on pense pour exprimer de l'ironie (ici, cela signifie 'c'est moche').", "difficulty": "easy" },
+                { "prompt": "Quelle belle journée de pluie !", "answer": "antiphrase", "explication": "Dire 'belle journée' pour signifier 'mauvaise journée', avec intention ironique.", "difficulty": "easy" },
+                { "prompt": "Ne te gêne surtout pas !", "answer": "antiphrase", "explication": "Dit ironiquement à quelqu'un qui dérange, pour signifier 'Tu me gênes'.", "difficulty": "medium" }
+            ]
+        },
+        'tonalites': {
+            "title": "📘 Tonalités Littéraires",
+            "quizId": "tonalites",
+            "defaultLength": null,
+            "questions": [
+                { "prompt": "Le texte cherche à faire rire ou sourire.", "answer": "Tonalité comique", "explication": "Situation absurde ou exagérée, jeux de mots, répétitions, caricature, ironie ou personnages ridicules.", "difficulty": "easy" },
+                { "prompt": "Le personnage est condamné d’avance, il n’y a pas d’issue.", "answer": "Tonalité tragique", "explication": "Le personnage est face au destin, à la mort. On trouve un vocabulaire du malheur, du destin, de la fatalité et un ton grave et solennel.", "difficulty": "medium" },
+                { "prompt": "Le texte veut toucher le lecteur, montrer la douleur ou la souffrance.", "answer": "Tonalité pathétique", "explication": "On trouve un vocabulaire de la tristesse, de la douleur, des phrases courtes ou exclamatives et des apostrophes (on parle à quelqu’un ou à Dieu).", "difficulty": "medium" },
+                { "prompt": "Le texte exprime les émotions personnelles (amour, nostalgie, joie, etc.).", "answer": "Tonalité lyrique", "explication": "Emploi de la 1re personne, champs lexicaux des sentiments (amour, tristesse, bonheur…) et ponctuation expressive (! ? …).", "difficulty": "easy" },
+                { "prompt": "C’est du lyrisme triste, souvent sur la mort, l’absence ou le temps qui passe.", "answer": "Tonalité élégiaque", "explication": "C'est une forme de lyrisme mais plus mélancolique, souvent dans des poèmes (ex : Lamartine, Hugo).", "difficulty": "hard" },
+                { "prompt": "Le texte met en valeur un héros dans un combat grandiose.", "answer": "Tonalité épique", "explication": "Utilisation d'exagérations (hyperboles), de nombreux adjectifs, d'un vocabulaire du combat et du courage, et description d'actions spectaculaires.", "difficulty": "medium" },
+                { "prompt": "Le texte attaque une idée ou une personne, parfois violemment.", "answer": "Tonalité polémique", "explication": "On repère un vocabulaire péjoratif, des questions oratoires, des interpellations, de l'ironie et des critiques fortes.", "difficulty": "hard" },
+                { "prompt": "Le texte se moque pour dénoncer.", "answer": "Tonalité satirique", "explication": "On trouve un humour grinçant, un détournement d’idées ou de situations, de l'ironie et des caricatures.", "difficulty": "hard" },
+                { "prompt": "Le texte veut transmettre un savoir ou une leçon.", "answer": "Tonalité didactique", "explication": "Les phrases sont claires et structurées, avec des exemples ou des définitions, dans un style logique et parfois impératif.", "difficulty": "easy" },
+                { "prompt": "Quelque chose d’étrange ou de surnaturel arrive dans un monde réaliste, créant une hésitation.", "answer": "Tonalité fantastique", "explication": "Il y a une hésitation entre rêve et réalité, un vocabulaire du doute (peut-être, on dirait que…) et une ambiance inquiétante.", "difficulty": "medium" },
+                { "prompt": "Le texte présente un monde magique, où le surnaturel est accepté naturellement.", "answer": "Tonalité merveilleuse", "explication": "On trouve des éléments magiques (fées, dragons…) dans un vocabulaire féérique et imaginaire, sans aucun doute chez les personnages.", "difficulty": "easy" },
+                { "prompt": "Tonalité qui met en scène des situations extrêmes et des personnages aux passions violentes.", "answer": "Dramatique", "difficulty": "hard", "explication": "La tonalité dramatique est caractéristique des œuvres où les événements s'enchaînent de manière tendue, aboutissant souvent à une crise ou un dénouement intense." }
+            ]
+        }
+    }; 
 
     let currentQuizData = null; // Données du quiz actuellement sélectionné
     let questionsForThisQuiz = []; // Questions pour la session de quiz actuelle
@@ -538,16 +623,16 @@
 
     // --- FONCTIONS DE GESTION DES QUIZ (Chargement & Sélection) ---
 
+    // La fonction fetchAllQuizData n'est plus nécessaire car les données sont intégrées directement.
+    /*
     async function fetchAllQuizData() {
         const quizFiles = {
-            // Updated to use the contentFetchId for the uploaded JSON files
             'figures': 'uploaded:quiz-figures.json',
             'tonalites': 'uploaded:quiz-tonalites.json'
         };
 
         for (const quizId in quizFiles) {
             try {
-                // Fetch the content using the special 'uploaded:' prefix for contentFetchId
                 const response = await fetch(quizFiles[quizId]); 
                 if (!response.ok) {
                     throw new Error(`Erreur de chargement du quiz ${quizId}: ${response.statusText}`);
@@ -556,12 +641,11 @@
                 allQuizData[quizId] = data;
             } catch (error) {
                 console.error(`Impossible de charger les données du quiz ${quizId}:`, error);
-                // Utiliser une modale custom au lieu d'alert pour une meilleure UX
                 alert(`Une erreur est survenue lors du chargement du quiz '${quizId}'. Veuillez vous assurer que les fichiers JSON sont accessibles.`); 
             }
         }
     }
-    
+    */
 
     function selectQuiz(quizId) {
         if (!activeUser) {
@@ -1052,7 +1136,7 @@
     async function initialize() {
         const savedTheme = localStorage.getItem('quizTheme') || 'light';
         applyTheme(savedTheme);
-        await fetchAllQuizData(); // Maintenant, les données sont récupérées à partir des fichiers JSON
+        // La fonction fetchAllQuizData n'est plus appelée ici car les données sont directement dans allQuizData
         loadUsers(); // Charger les profils utilisateur
         showMenu();
     }

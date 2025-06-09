@@ -540,13 +540,15 @@
 
     async function fetchAllQuizData() {
         const quizFiles = {
-            'figures': 'quiz-figures.json',
-            'tonalites': 'quiz-tonalites.json'
+            // Updated to use the contentFetchId for the uploaded JSON files
+            'figures': 'uploaded:quiz-figures.json',
+            'tonalites': 'uploaded:quiz-tonalites.json'
         };
 
         for (const quizId in quizFiles) {
             try {
-                const response = await fetch(quizFiles[quizId]);
+                // Fetch the content using the special 'uploaded:' prefix for contentFetchId
+                const response = await fetch(quizFiles[quizId]); 
                 if (!response.ok) {
                     throw new Error(`Erreur de chargement du quiz ${quizId}: ${response.statusText}`);
                 }
@@ -554,7 +556,8 @@
                 allQuizData[quizId] = data;
             } catch (error) {
                 console.error(`Impossible de charger les données du quiz ${quizId}:`, error);
-                alert(`Une erreur est survenue lors du chargement du quiz '${quizId}'.`); // Utiliser une modale custom
+                // Utiliser une modale custom au lieu d'alert pour une meilleure UX
+                alert(`Une erreur est survenue lors du chargement du quiz '${quizId}'. Veuillez vous assurer que les fichiers JSON sont accessibles.`); 
             }
         }
     }
@@ -1049,7 +1052,7 @@
     async function initialize() {
         const savedTheme = localStorage.getItem('quizTheme') || 'light';
         applyTheme(savedTheme);
-        await fetchAllQuizData(); // Now fetches data from JSON files
+        await fetchAllQuizData(); // Maintenant, les données sont récupérées à partir des fichiers JSON
         loadUsers(); // Charger les profils utilisateur
         showMenu();
     }

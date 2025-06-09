@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quiz Littéraires</title>
+<style>
+    /* Thème Clair (par défaut) */
+    :root {
+        --bg-color: #f0f0f0;
+        --text-color: #333;
+        --header-color: #222;
+        --phrase-color: #555;
+        --select-bg: #fff;
+        --select-border: #c0c0c0;
+        --button-primary-bg: #0078d4;
+        --button-primary-hover: #005a9e;
+        --button-secondary-bg: #6c757d;
+        --button-secondary-hover: #5a6268;
+        --feedback-correct: #28a745;
+        --feedback-incorrect: #dc3545;
+        --container-bg: #ffffff;
+        --progress-bg: #e0e0e0;
+        --progress-fill: #4CAF50;
+    }
+
+    /* Thème Sombre */
+    .dark-mode {
+        --bg-color: #121212;
+        --text-color: #f0f0f0;
+        --header-color: #ffffff;
+        --phrase-color: #cccccc;
+        --select-bg: #333333;
+        --select-border: #666666;
+        --container-bg: #1e1e1e;
+        --progress-bg: #333;
+        --progress-fill: #66BB6A;
+    }
+
+    body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: var(--bg-color);
+        color: var(--text-color);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+        box-sizing: border-box;
+        transition: background 0.3s, color 0.3s;
+    }
+
+    .header-container {
+        width: 100%;
+        max-width: 580px;
+        display: flex;
+        justify-content: flex-end;
+        padding: 0 10px;
+        margin-bottom: 20px;
+    }
+    
+    #themeToggleBtn {
+        background: var(--button-secondary-bg);
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
+    }
+
+    .main-content {
+        max-width: 580px;
+        width: 100%;
+        text-align: center;
+    }
+
+    #quizTitle {
+        font-size: 2.5em;
+        margin-bottom: 5px;
+        color: var(--header-color);
+    }
+
+    #highScoreDisplay {
+        font-size: 1.1em;
+        color: var(--phrase-color);
+        margin-bottom: 35px;
+        min-height: 20px;
+    }
+
+    /* --- Styles du Menu de Sélection --- */
+    #selectionContainer h1 {
+        font-size: 2.8em;
+        color: var(--header-color);
+    }
+    .quiz-choice-btn {
+        font-size: 1.5em;
+        padding: 20px 30px;
+        width: 100%;
+        max-width: 400px;
+        margin-top: 20px;
+    }
+    
+    /* --- Styles du Quiz --- */
+    .progress-bar-container {
+        width: 100%;
+        background-color: var(--progress-bg);
+        border-radius: 5px;
+        margin-bottom: 25px;
+        height: 10px;
+        overflow: hidden; /* Ensure fill doesn't overflow */
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        width: 0%;
+        background-color: var(--progress-fill);
+        border-radius: 5px;
+        transition: width 0.3s ease-in-out;
+    }
+
+    .phrase {
+        font-style: italic;
+        font-size: 1.5em;
+        margin: 30px 0 25px 0;
+        line-height: 1.5;
+        color: var(--phrase-color);
+        padding: 15px;
+        background: var(--bg-color);
+        border-radius: 8px;
+    }
+
+    select {
+        width: 100%;
+        padding: 12px 15px;
+        font-size: 1.1em;
+        margin-bottom: 25px;
+        border: 1px solid var(--select-border);
+        border-radius: 4px;
+        background-color: var(--select-bg);
+        color: var(--text-color);
+        appearance: none;
+        background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%204%205%22%3E%3Cpath%20fill%3D%22%23cccccc%22%20d%3D%22M2%200L0%202h4L2%200zM2%205L0%203h4L2%205z%22%2F%3E%3C%2Fsvg%3E');
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        background-size: 8px 10px;
+        cursor: pointer;
+    }
+
+    button {
+        padding: 12px 28px;
+        font-size: 1.15em;
+        background: var(--button-primary-bg);
+        border: none;
+        color: white;
+        cursor: pointer;
+        width: 100%;
+        max-width: 350px;
+        border-radius: 4px;
+        transition: background 0.2s ease;
+        margin: 10px auto;
+        display: block;
+    }
+    button:hover { background: var(--button-primary-hover); }
+
+    #explanationBtn, #backToMenuBtn { background: var(--button-secondary-bg); }
+    #explanationBtn:hover, #backToMenuBtn:hover { background: var(--button-secondary-hover); }
+    
+    .feedback {
+        margin-top: 30px;
+        font-weight: bold;
+        min-height: 80px;
+        font-size: 1.25em;
+        line-height: 1.5;
+        white-space: pre-wrap; /* Pour afficher les retours à la ligne */
+    }
+    .feedback.correct { color: var(--feedback-correct); }
+    .feedback.incorrect { color: var(--feedback-incorrect); }
+
+    .score { margin-top: 35px; font-size: 1.3em; color: var(--phrase-color); }
+    #quizContainer { display: none; width: 100%; }
+</style>
+</head>
+<body>
+
+<div class="header-container">
+    <button id="themeToggleBtn">Thème Sombre</button>
+</div>
+
+<div class="main-content">
+    <div id="selectionContainer">
+        <h1>Quiz Littéraires</h1>
+        <button id="startFiguresBtn" class="quiz-choice-btn">🧠 Figures de Style</button>
+        <button id="startTonalitesBtn" class="quiz-choice-btn">📘 Tonalités Littéraires</button>
+    </div>
+
+    <div id="quizContainer">
+        <h1 id="quizTitle"></h1>
+        <div id="highScoreDisplay"></div>
+        <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="progressBarFill"></div>
+        </div>
+        <div class="phrase" id="phrase"></div>
+        <form id="form">
+            <label for="answer" style="display: none;">Réponse :</label><br>
+            <select id="answer" required></select><br>
+            <button type="submit" id="submitBtn">Valider</button>
+        </form>
+        <div id="feedback" class="feedback"></div>
+        <div id="score" class="score"></div>
+        <button id="explanationBtn" style="display: none;">Voir l'explication</button>
+        <button id="nextBtn" style="display: none;">Suivant</button>
+        <div id="endQuizBtns" style="display: none;">
+            <button id="replayBtn">Rejouer</button>
+            <button id="backToMenuBtn">Retour au Menu</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- GESTION DES ÉLÉMENTS DU DOM ---
+    const selectionContainer = document.getElementById('selectionContainer');
+    const quizContainer = document.getElementById('quizContainer');
+    const startFiguresBtn = document.getElementById('startFiguresBtn');
+    const startTonalitesBtn = document.getElementById('startTonalitesBtn');
+    
+    const quizTitle = document.getElementById('quizTitle');
+    const highScoreDisplay = document.getElementById('highScoreDisplay');
+    const progressBarFill = document.getElementById('progressBarFill'); // Nouveau : barre de progression
+    const phraseEl = document.getElementById('phrase');
+    const form = document.getElementById('form');
+    const answerSelect = document.getElementById('answer');
+    const feedbackEl = document.getElementById('feedback');
+    const scoreEl = document.getElementById('score');
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const explanationBtn = document.getElementById('explanationBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const endQuizBtns = document.getElementById('endQuizBtns');
+    const replayBtn = document.getElementById('replayBtn');
+    const backToMenuBtn = document.getElementById('backToMenuBtn');
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+    // --- VARIABLES GLOBALES DU QUIZ ---
+    let currentQuizData = null; // Stockera les données du quiz actuellement chargé
+    let questionsForThisQuiz = []; // Les questions sélectionnées pour la partie actuelle
+    let currentQuestionIndex = 0;
+    let score = 0;
+    
+    // --- FONCTION DE CHARGEMENT DES QUIZ DEPUIS DES FICHIERS JSON ---
+    async function fetchQuizData(quizFileName) {
+        try {
+            const response = await fetch(quizFileName);
+            if (!response.ok) {
+                throw new Error(`Erreur de chargement du quiz : ${response.statusText}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("Impossible de charger les données du quiz :", error);
+            feedbackEl.className = 'feedback incorrect';
+            feedbackEl.textContent = "Une erreur est survenue lors du chargement du quiz. Veuillez réessayer.";
+            return null;
+        }
+    }
+
+    // --- LOGIQUE MULTI-QUIZ ---
+    async function launchQuiz(quizFilePath) {
+        const data = await fetchQuizData(quizFilePath);
+        if (data) {
+            currentQuizData = data;
+            selectionContainer.style.display = 'none';
+            quizContainer.style.display = 'block';
+            quizTitle.textContent = currentQuizData.title;
+            loadHighScore();
+            startQuiz();
+        } else {
+            // Si le chargement échoue, revenir au menu
+            showMenu();
+        }
+    }
+
+    startFiguresBtn.addEventListener('click', () => launchQuiz('quiz-figures.json'));
+    startTonalitesBtn.addEventListener('click', () => launchQuiz('quiz-tonalites.json'));
+    backToMenuBtn.addEventListener('click', showMenu);
+    
+    function showMenu() {
+        quizContainer.style.display = 'none';
+        selectionContainer.style.display = 'block';
+        quizTitle.textContent = '';
+        highScoreDisplay.textContent = '';
+        progressBarFill.style.width = '0%'; // Réinitialiser la barre de progression
+    }
+
+    // --- LOGIQUE DU HIGH SCORE ---
+    function getHighScoreKey() {
+        // La clé inclut maintenant l'ID du quiz pour des records séparés
+        return `quizHighScore_${currentQuizData.quizId}`;
+    }
+
+    function loadHighScore() {
+        const highScore = parseInt(localStorage.getItem(getHighScoreKey()) || '0', 10);
+        // Utilise la longueur par défaut du quiz ou le nombre total de questions si moins
+        const quizLength = currentQuizData.defaultLength || currentQuizData.questions.length;
+        highScoreDisplay.textContent = `🏆 Record : ${highScore} / ${quizLength}`;
+    }
+
+    function saveHighScore() {
+        const key = getHighScoreKey();
+        const currentHighScore = parseInt(localStorage.getItem(key) || '0', 10);
+        if (score > currentHighScore) {
+            localStorage.setItem(key, score);
+            loadHighScore(); // Met à jour l'affichage du record
+            return true;
+        }
+        return false;
+    }
+
+    // --- LOGIQUE DU QUIZ (Générique) ---
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function populateSelectOptions() {
+        answerSelect.innerHTML = '<option value="" disabled selected>Choisis une réponse</option>';
+        // Récupère toutes les réponses possibles du quiz actuel
+        const answers = currentQuizData.questions.map(q => q.answer);
+        const uniqueAnswers = [...new Set(answers)].sort(); // Tri alphabétique
+        uniqueAnswers.forEach(answer => {
+            const option = document.createElement('option');
+            option.value = answer;
+            option.textContent = answer.charAt(0).toUpperCase() + answer.slice(1);
+            answerSelect.appendChild(option);
+        });
+    }
+
+    function startQuiz() {
+        // Mélange toutes les questions disponibles
+        const allQuestions = [...currentQuizData.questions];
+        shuffleArray(allQuestions);
+        
+        // Sélectionne le nombre de questions défini par defaultLength ou toutes
+        const quizLength = currentQuizData.defaultLength ? 
+                           Math.min(currentQuizData.defaultLength, allQuestions.length) :
+                           allQuestions.length;
+        questionsForThisQuiz = allQuestions.slice(0, quizLength);
+        
+        currentQuestionIndex = 0;
+        score = 0;
+        
+        populateSelectOptions();
+        updateQuestion();
+    }
+    
+    function updateQuestion() {
+        endQuizBtns.style.display = 'none';
+        nextBtn.style.display = 'none';
+        explanationBtn.style.display = 'none';
+
+        const currentQuestion = questionsForThisQuiz[currentQuestionIndex];
+        phraseEl.textContent = currentQuestion.prompt;
+        answerSelect.value = ""; // Réinitialise la sélection
+        feedbackEl.innerHTML = "";
+        feedbackEl.className = 'feedback';
+        scoreEl.textContent = `Score : ${score} / ${currentQuestionIndex}`;
+        form.style.display = "block";
+        submitBtn.style.display = "block";
+        submitBtn.disabled = false;
+
+        // Met à jour la barre de progression
+        const progress = (currentQuestionIndex / questionsForThisQuiz.length) * 100;
+        progressBarFill.style.width = `${progress}%`;
+    }
+
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+        submitBtn.disabled = true;
+        const userAnswer = answerSelect.value;
+        const currentQuestion = questionsForThisQuiz[currentQuestionIndex];
+        const correctAnswer = currentQuestion.answer;
+
+        if (userAnswer === correctAnswer) {
+            score++;
+            feedbackEl.className = 'feedback correct';
+            feedbackEl.textContent = "✅ Bonne réponse !";
+        } else {
+            feedbackEl.className = 'feedback incorrect';
+            feedbackEl.innerHTML = `❌ Mauvaise réponse.<br>La bonne réponse était : <strong>${correctAnswer}</strong>.`;
+            // Affiche le bouton d'explication uniquement si la réponse est fausse et qu'une explication existe
+            if (currentQuestion.explication) {
+                explanationBtn.style.display = "block";
+                explanationBtn.textContent = "Voir l'explication";
+            }
+        }
+        
+        nextBtn.style.display = "block";
+        scoreEl.textContent = `Score : ${score} / ${currentQuestionIndex + 1}`;
+        form.style.display = "none";
+    });
+    
+    explanationBtn.addEventListener("click", () => {
+        const currentQuestion = questionsForThisQuiz[currentQuestionIndex];
+        const explicationText = `<br><br><strong>Explication :</strong><br>${currentQuestion.explication}`;
+        
+        if (explanationBtn.textContent === "Voir l'explication") {
+            feedbackEl.innerHTML += explicationText;
+            explanationBtn.textContent = "Cacher l'explication";
+        } else {
+            // Réinitialise le message de feedback à l'état initial (avant explication)
+            feedbackEl.innerHTML = `❌ Mauvaise réponse.<br>La bonne réponse était : <strong>${currentQuestion.answer}</strong>.`;
+            explanationBtn.textContent = "Voir l'explication";
+        }
+    });
+
+    nextBtn.addEventListener("click", () => {
+        currentQuestionIndex++;
+        if (currentQuestionIndex >= questionsForThisQuiz.length) {
+            endQuiz();
+        } else {
+            updateQuestion();
+        }
+    });
+    
+    function endQuiz() {
+        const isNewHighScore = saveHighScore();
+        const quizLength = questionsForThisQuiz.length;
+        phraseEl.textContent = "🎉 Quiz terminé !";
+        
+        // Met à jour la barre de progression à 100% à la fin
+        progressBarFill.style.width = '100%';
+
+        let finalMessage = `Ton score final est de ${score} sur ${quizLength}.`;
+        if (isNewHighScore) {
+            finalMessage += "\n\n✨ Nouveau record personnel ! Félicitations ! ✨";
+        }
+        feedbackEl.textContent = finalMessage;
+        
+        form.style.display = "none";
+        explanationBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+        endQuizBtns.style.display = 'block';
+        scoreEl.textContent = `Score final : ${score} / ${quizLength}`;
+    }
+
+    replayBtn.addEventListener('click', startQuiz);
+
+    // --- LOGIQUE DU THÈME SOMBRE ---
+    function applyTheme(theme) {
+        document.body.classList.toggle('dark-mode', theme === 'dark');
+        themeToggleBtn.textContent = theme === 'dark' ? 'Thème Clair' : 'Thème Sombre';
+        localStorage.setItem('quizTheme', theme);
+    }
+    themeToggleBtn.addEventListener('click', () => {
+        const currentTheme = localStorage.getItem('quizTheme') || 'light';
+        applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+    });
+
+    // --- Initialisation de la page ---
+    function initialize() {
+        const savedTheme = localStorage.getItem('quizTheme') || 'light';
+        applyTheme(savedTheme);
+        showMenu();
+    }
+    
+    initialize();
+</script>
+</body>
+</html>

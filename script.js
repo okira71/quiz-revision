@@ -14,20 +14,22 @@ function showMessageBox(message) {
 const selectionContainer = document.getElementById('selectionContainer');
 const quizContainer = document.getElementById('quizContainer');
 const statsContainer = document.getElementById('statsContainer');
-const dissertationContainer = document.getElementById('dissertationContainer'); // Nouveau : Conteneur de la dissertation
+const dissertationContainer = document.getElementById('dissertationContainer');
+const dissertationPlanGameContainer = document.getElementById('dissertationPlanGameContainer'); // Nouveau : Conteneur du jeu de plan
 
 const usernameInput = document.getElementById('usernameInput');
 const createUserBtn = document.getElementById('createUserBtn');
 const loadUserBtn = document.getElementById('loadUserBtn');
 const profileList = document.getElementById('profileList');
 const activeUserProfileDisplay = document.getElementById('activeUserProfile');
-const currentUserDisplay = document.getElementById('currentUserDisplay'); // En-tête global
+const currentUserDisplay = document.getElementById('currentUserDisplay');
 const viewStatsBtn = document.getElementById('viewStatsBtn');
-const deleteUserBtn = document.getElementById('deleteUserBtn'); // Nouveau : Bouton supprimer
+const deleteUserBtn = document.getElementById('deleteUserBtn');
 
 const startFiguresBtn = document.getElementById('startFiguresBtn');
 const startTonalitesBtn = document.getElementById('startTonalitesBtn');
-const startDissertationBtn = document.getElementById('startDissertationBtn'); // Nouveau : Bouton Dissertation
+const startDissertationBtn = document.getElementById('startDissertationBtn');
+const startDissertationPlanBtn = document.getElementById('startDissertationPlanBtn'); // Nouveau : Bouton pour le jeu de plan
 const gameOptionsSection = document.getElementById('gameOptionsSection');
 const gameModeOptions = document.getElementById('gameModeOptions');
 const difficultyOptions = document.getElementById('difficultyOptions');
@@ -35,7 +37,7 @@ const startSelectedQuizBtn = document.getElementById('startSelectedQuizBtn');
 
 const quizTitleEl = document.getElementById('quizTitle');
 const highScoreDisplay = document.getElementById('highScoreDisplay');
-const timerDisplay = document.getElementById('timerDisplay'); // Nouveau : Affichage du timer
+const timerDisplay = document.getElementById('timerDisplay');
 const progressBarFill = document.getElementById('progressBarFill');
 const phraseEl = document.getElementById('phrase');
 const form = document.getElementById('form');
@@ -49,7 +51,7 @@ const nextBtn = document.getElementById('nextBtn');
 const endQuizBtns = document.getElementById('endQuizBtns');
 const replayBtn = document.getElementById('replayBtn');
 const backToMenuBtn = document.getElementById('backToMenuBtn');
-const viewQuizStatsBtn = document.getElementById('viewQuizStatsBtn'); // Bouton pour voir stats du quiz terminé
+const viewQuizStatsBtn = document.getElementById('viewQuizStatsBtn');
 const backToMainMenuFromStatsBtn = document.getElementById('backToMainMenuFromStatsBtn');
 const themeToggleBtn = document.getElementById('themeToggleBtn');
 
@@ -58,7 +60,7 @@ const statsForQuizTitle = document.getElementById('statsForQuizTitle');
 const statsHighScore = document.getElementById('statsHighScore');
 const failedQuestionsList = document.getElementById('failedQuestionsList');
 
-// Éléments de la nouvelle section dissertation
+// Éléments de la section dissertation
 const dissertationTopicDisplay = document.getElementById('dissertationTopicDisplay');
 const selectDissertationTopicBtn = document.getElementById('selectDissertationTopicBtn');
 const dissertationTopicSelection = document.getElementById('dissertationTopicSelection');
@@ -70,12 +72,20 @@ const loadingIndicator = document.getElementById('loadingIndicator');
 const dissertationFeedback = document.getElementById('dissertationFeedback');
 const backToMenuFromDissertationBtn = document.getElementById('backToMenuFromDissertationBtn');
 
+// Éléments du jeu de plan de dissertation
+const sortablePlanBlocks = document.getElementById('sortablePlanBlocks');
+const checkPlanBtn = document.getElementById('checkPlanBtn');
+const planFeedback = document.getElementById('planFeedback');
+const newPlanBtn = document.getElementById('newPlanBtn');
+const backToMenuFromPlanBtn = document.getElementById('backToMenuFromPlanBtn');
+
+
 // --- VARIABLES GLOBALES DU QUIZ ET DU PROFIL ---
 let allQuizData = {
     'figures': {
         "title": "🧠 Figures de Style",
         "quizId": "figures",
-        "defaultLength": 15, // Augmenté à 15 questions par défaut
+        "defaultLength": 15,
         "questions": [
             { "prompt": "La mer est un miroir.", "answer": "métaphore", "explication": "La mer est comparée directement à un miroir sans outil de comparaison.", "difficulty": "easy" },
             { "prompt": "Ses yeux étaient deux étoiles brillantes.", "answer": "métaphore", "explication": "Les yeux sont directement comparés à des étoiles sans outil de comparaison.", "difficulty": "easy" },
@@ -158,7 +168,7 @@ let allQuizData = {
             { "prompt": "Quelque chose d’étrange ou de surnaturel arrive dans un monde réaliste, créant une hésitation.", "answer": "Tonalité fantastique", "explication": "Il y a une hésitation entre rêve et réalité, un vocabulaire du doute (peut-être, on dirait que…) et une ambiance inquiétante.", "difficulty": "medium" },
             { "prompt": "Le texte présente un monde magique, où le surnaturel est accepté naturellement.", "answer": "Tonalité merveilleuse", "explication": "On trouve des éléments magiques (fées, dragons…) dans un vocabulaire féérique et imaginaire, sans aucun doute chez les personnages.", "difficulty": "easy" },
             { "prompt": "Tonalité qui met en scène des situations extrêmes et des personnages aux passions violentes.", "answer": "Dramatique", "difficulty": "hard", "explication": "La tonalité dramatique est caractéristique des œuvres où les événements s'enchaînent de manière tendue, aboutissant souvent à une crise ou un dénouement intense." },
-            { "prompt": "Le texte exprime la joie, l'enthousiasme, la célébration.", "answer": "Tonalité épidictique (louange)", "difficulty": "medium", "explication": "Caractérisée par un vocabulaire mélioratif, des exclamations et un ton solennel, elle vise à louer ou blâmer." },
+            { "prompt": "Le texte exprime la joie, l'enthousiasme, la célébration.", "answer": "Tonalité épidictique (louange)", "difficulty": "medium", "explication": "Caractérisée par un vocabulaire mélioratif, des exclamations et un ton solennel, elle vise à louer ou blâmer." سپس", "difficulty": "medium", "explication": "Utilise un vocabulaire abstrait, des questions rhétoriques, et une argumentation logique pour provoquer la pensée." },
             { "prompt": "Le texte invite à la méditation, à la réflexion sur la condition humaine.", "answer": "Tonalité philosophique", "difficulty": "medium", "explication": "Utilise un vocabulaire abstrait, des questions rhétoriques, et une argumentation logique pour provoquer la pensée." },
             { "prompt": "Le texte vise à émouvoir, à provoquer des sentiments de pitié ou d'horreur.", "answer": "Tonalité pathétique", "difficulty": "easy", "explication": "Elle se manifeste par un vocabulaire de la souffrance, des larmes, et des exclamations." },
             { "prompt": "Le texte relate des événements passés, souvent avec une visée historique ou documentaire.", "answer": "Tonalité narrative", "difficulty": "easy", "explication": "Caractérisée par l'emploi du passé simple, de marqueurs temporels, et une succession d'actions." }
@@ -173,22 +183,32 @@ const dissertationTopics = [
     "Les personnages de fiction nous aident-ils à mieux comprendre le réel ?"
 ];
 
+const dissertationPlanElements = [
+    "Introduction : Accroche + Présentation du texte + Problématique + Annonce du Plan",
+    "Développement : Première partie (axe clair, citations, procédés, analyse)",
+    "Développement : Deuxième partie (axe clair, citations, procédés, analyse)",
+    "Développement : Troisième partie (axe clair, citations, procédés, analyse)", // Optional part
+    "Conclusion : Bilan + Ouverture pertinente"
+];
 
-let currentQuizData = null; // Données du quiz actuellement sélectionné
-let questionsForThisQuiz = []; // Questions pour la session de quiz actuelle
+
+let currentQuizData = null;
+let questionsForThisQuiz = [];
 let currentQuestionIndex = 0;
 let score = 0;
 
-let activeUser = null; // L'objet du profil utilisateur actif
-let users = {}; // Tous les profils d'utilisateurs chargés depuis localStorage
+let activeUser = null;
+let users = {};
 
 let selectedGameMode = 'normal';
 let selectedDifficulty = 'any';
-let quizTimer = null; // Pour le mode contre-la-montre
-const TIME_PER_QUESTION_SECONDS = 15; // Temps par question en mode contre-la-montre
+let quizTimer = null;
+const TIME_PER_QUESTION_SECONDS = 15;
 
-let selectedDissertationTopic = ''; // Sujet de dissertation sélectionné
+let selectedDissertationTopic = '';
 
+// Pour le jeu de plan de dissertation
+let correctPlanOrder = [];
 
 // --- PONDÉRATION DES SCORES PAR DIFFICULTÉ ---
 const DIFFICULTY_POINTS = {
@@ -208,7 +228,7 @@ function loadUsers() {
             activeUser = users[activeUserId];
             updateActiveUserDisplay();
             viewStatsBtn.style.display = 'block';
-            deleteUserBtn.style.display = 'block'; // Afficher le bouton de suppression
+            deleteUserBtn.style.display = 'block';
         }
     }
     renderProfileList();
@@ -235,10 +255,10 @@ function createUser() {
     }
 
     const newUser = {
-        id: username, // Pour la simplicité, l'ID est le nom d'utilisateur
+        id: username,
         name: username,
-        quizStats: {}, // Stockera les performances de chaque quiz
-        dissertationHistory: [] // Historique des dissertations analysées
+        quizStats: {},
+        dissertationHistory: []
     };
     users[username] = newUser;
     activeUser = newUser;
@@ -247,7 +267,7 @@ function createUser() {
     showMessageBox(`Profil '${username}' créé et sélectionné !`);
     viewStatsBtn.style.display = 'block';
     deleteUserBtn.style.display = 'block';
-    renderProfileList(); // Refresh list to show new user
+    renderProfileList();
 }
 
 function loadUser(username) {
@@ -261,7 +281,7 @@ function loadUser(username) {
     showMessageBox(`Profil '${username}' chargé !`);
     viewStatsBtn.style.display = 'block';
     deleteUserBtn.style.display = 'block';
-    renderProfileList(); // Refresh list to highlight selected user if needed (though not currently implemented visually)
+    renderProfileList();
 }
 
 function deleteCurrentUser() {
@@ -269,7 +289,6 @@ function deleteCurrentUser() {
         showMessageBox("Aucun profil actif à supprimer.");
         return;
     }
-    // Utilisez showMessageBox pour une confirmation sans bloquer le thread
     showMessageBox(`Êtes-vous sûr de vouloir supprimer le profil de '${activeUser.name}' ? Toutes les statistiques associées seront perdues.<br><button id="confirmDeleteUserBtn" class="message-box-btn">Oui</button><button id="cancelDeleteUserBtn" class="message-box-btn">Non</button>`);
 
     document.getElementById('confirmDeleteUserBtn').addEventListener('click', () => {
@@ -277,12 +296,11 @@ function deleteCurrentUser() {
         activeUser = null;
         saveUsers();
         updateActiveUserDisplay();
-        showMessageBox("Profil supprimé."); // Message de confirmation après suppression
+        showMessageBox("Profil supprimé.");
         viewStatsBtn.style.display = 'none';
         deleteUserBtn.style.display = 'none';
         renderProfileList();
-        showMenu(); // Retour au menu principal après suppression
-        // Supprimez la messageBox après confirmation
+        showMenu();
         const messageBox = document.querySelector('.message-box');
         if (messageBox) {
             document.body.removeChild(messageBox);
@@ -290,7 +308,6 @@ function deleteCurrentUser() {
     });
 
     document.getElementById('cancelDeleteUserBtn').addEventListener('click', () => {
-        // Supprimez la messageBox si l'utilisateur annule
         const messageBox = document.querySelector('.message-box');
         if (messageBox) {
             document.body.removeChild(messageBox);
@@ -314,9 +331,9 @@ function renderProfileList() {
     for (const userId in users) {
         const userBtn = document.createElement('button');
         userBtn.textContent = users[userId].name;
-        userBtn.classList.add('profile-button'); // Add a class for potential styling
+        userBtn.classList.add('profile-button');
         if (activeUser && activeUser.id === userId) {
-            userBtn.classList.add('selected'); // Highlight active user
+            userBtn.classList.add('selected');
         }
         userBtn.addEventListener('click', () => loadUser(userId));
         profileList.appendChild(userBtn);
@@ -332,9 +349,7 @@ function selectQuiz(quizId) {
     }
     currentQuizData = allQuizData[quizId];
     if (currentQuizData) {
-        // Afficher les options de jeu
         gameOptionsSection.style.display = 'block';
-        // Mettre à jour l'affichage du meilleur score pour le quiz sélectionné
         loadHighScore();
     }
 }
@@ -355,7 +370,7 @@ function getQuizStatsForCurrentUser(quizId, gameMode, difficulty) {
             totalPlayed: 0,
             totalCorrect: 0,
             totalQuestionsAnswered: 0,
-            questionPerformance: {} // { "prompt_hash": { correct: X, incorrect: Y } }
+            questionPerformance: {}
         };
     }
     return activeUser.quizStats[quizId][gameMode][difficulty];
@@ -367,7 +382,6 @@ function loadHighScore() {
         return;
     }
     const stats = getQuizStatsForCurrentUser(currentQuizData.quizId, selectedGameMode, selectedDifficulty);
-    // Utilise la longueur par défaut du quiz pour l'affichage du record si définie, sinon la longueur totale des questions disponibles.
     const quizPossibleLength = currentQuizData.questions.filter(q => selectedDifficulty === 'any' || q.difficulty === selectedDifficulty).length;
     highScoreDisplay.textContent = `🏆 Record (${activeUser.name} - ${selectedGameMode}, ${selectedDifficulty}) : ${stats.highScore} / ${currentQuizData.defaultLength || quizPossibleLength}`;
 }
@@ -380,11 +394,6 @@ function saveQuizStats(quizId, finalScore, totalQuestionsPlayed, questionResults
     stats.totalCorrect += finalScore;
     stats.totalQuestionsAnswered += totalQuestionsPlayed;
 
-    // Mise à jour du meilleur score - ne devrait être mis à jour qu'à la fin du quiz
-    // Cette fonction est appelée à chaque question, donc nous allons déplacer la logique du high score à la fin du quiz.
-    // Pour l'instant, elle met à jour les performances par question.
-
-    // Mise à jour des performances par question
     for (const promptHash in questionResults) {
         if (!stats.questionPerformance[promptHash]) {
             stats.questionPerformance[promptHash] = { correct: 0, incorrect: 0 };
@@ -395,7 +404,7 @@ function saveQuizStats(quizId, finalScore, totalQuestionsPlayed, questionResults
             stats.questionPerformance[promptHash].incorrect++;
         }
     }
-    saveUsers(); // Sauvegarde tout l'objet users
+    saveUsers();
 }
 
 function displayOverallStats() {
@@ -405,20 +414,21 @@ function displayOverallStats() {
     }
     selectionContainer.style.display = 'none';
     quizContainer.style.display = 'none';
-    dissertationContainer.style.display = 'none'; // Cacher la section dissertation
+    dissertationContainer.style.display = 'none';
+    dissertationPlanGameContainer.style.display = 'none'; // Cacher le jeu de plan
     statsContainer.style.display = 'block';
 
     statsUserName.textContent = activeUser.name;
-    statsForQuizTitle.textContent = "tous les quiz"; // Afficher les stats générales
+    statsForQuizTitle.textContent = "tous les quiz";
 
     let totalHighScoreSum = 0;
-    let mostFailedQuestions = {}; // { prompt: { correct: X, incorrect: Y } }
+    let mostFailedQuestions = {};
 
     for (const quizId in activeUser.quizStats) {
         for (const mode in activeUser.quizStats[quizId]) {
             for (const difficulty in activeUser.quizStats[quizId][mode]) {
                 const stats = activeUser.quizStats[quizId][mode][difficulty];
-                totalHighScoreSum += stats.highScore; // Cumuler les meilleurs scores
+                totalHighScoreSum += stats.highScore;
 
                 for (const promptHash in stats.questionPerformance) {
                     const qPerf = stats.questionPerformance[promptHash];
@@ -455,7 +465,6 @@ function displayOverallStats() {
     }
 }
 
-// Utility to find question data by hash (for stats display)
 function findQuestionByHash(quizId, promptHash) {
     const quiz = allQuizData[quizId];
     if (quiz) {
@@ -491,7 +500,7 @@ function stringToHash(str) {
     for (let i = 0; i < str.length; i++) {
         const char = str.charCodeAt(i);
         hash = ((hash << 5) - hash) + char;
-        hash |= 0; // Convert to 32bit integer
+        hash |= 0;
     }
     return hash.toString();
 }
@@ -500,9 +509,9 @@ function showMenu() {
     selectionContainer.style.display = 'block';
     quizContainer.style.display = 'none';
     statsContainer.style.display = 'none';
-    dissertationContainer.style.display = 'none'; // Cacher la section dissertation
-    gameOptionsSection.style.display = 'none'; // Hide game options when returning to main menu
-    // Reset selected game mode and difficulty to defaults for next selection
+    dissertationContainer.style.display = 'none';
+    dissertationPlanGameContainer.style.display = 'none'; // Cacher le jeu de plan
+    gameOptionsSection.style.display = 'none';
     selectedGameMode = 'normal';
     selectedDifficulty = 'any';
     Array.from(gameModeOptions.children).forEach(btn => {
@@ -525,17 +534,15 @@ function startQuiz() {
         return;
     }
 
-    // Filtration des questions par difficulté
     let availableQuestions = [...currentQuizData.questions];
     if (selectedDifficulty !== 'any') {
         availableQuestions = availableQuestions.filter(q => q.difficulty === selectedDifficulty);
     }
 
-    // Logique du mode Révision
     if (selectedGameMode === 'revision') {
         const stats = getQuizStatsForCurrentUser(currentQuizData.quizId, selectedGameMode, selectedDifficulty);
         const failedQuestionHashes = Object.keys(stats.questionPerformance).filter(hash =>
-            stats.questionPerformance[hash].incorrect > (stats.questionPerformance[hash].correct || 0) // Ensure correct is treated as 0 if undefined
+            stats.questionPerformance[hash].incorrect > (stats.questionPerformance[hash].correct || 0)
         );
 
         if (failedQuestionHashes.length > 0) {
@@ -554,7 +561,6 @@ function startQuiz() {
             return;
         }
     } else {
-        // Pour les autres modes, mélanger et prendre le nombre par défaut ou toutes
         shuffleArray(availableQuestions);
         const quizLength = currentQuizData.defaultLength ?
                            Math.min(currentQuizData.defaultLength, availableQuestions.length) :
@@ -571,8 +577,8 @@ function startQuiz() {
     selectionContainer.style.display = 'none';
     quizContainer.style.display = 'block';
     quizTitleEl.textContent = currentQuizData.title;
-    loadHighScore(); // Appel sans arguments, car les valeurs sont globales
-    timerDisplay.style.display = 'none'; // Cacher par défaut
+    loadHighScore();
+    timerDisplay.style.display = 'none';
 
     currentQuestionIndex = 0;
     score = 0;
@@ -580,12 +586,11 @@ function startQuiz() {
     populateSelectOptions();
     updateQuestion();
 
-    // Démarrer le timer si en mode contre-la-montre
     if (selectedGameMode === 'timetrial') {
         startTimer();
         timerDisplay.style.display = 'block';
     } else {
-        stopTimer(); // S'assurer que le timer est arrêté si non en mode contre-la-montre
+        stopTimer();
     }
 }
 
@@ -609,11 +614,9 @@ function updateQuestion() {
     submitBtn.style.display = "block";
     submitBtn.disabled = false;
 
-    // Met à jour la barre de progression
     const progress = (currentQuestionIndex / questionsForThisQuiz.length) * 100;
     progressBarFill.style.width = `${progress}%`;
 
-    // Réinitialiser le timer pour la nouvelle question si en mode contre-la-montre
     if (selectedGameMode === 'timetrial') {
         resetTimerForQuestion();
     }
@@ -623,9 +626,7 @@ let questionTimer = null;
 let timeLeftForQuestion = TIME_PER_QUESTION_SECONDS;
 
 function startTimer() {
-    resetTimerForQuestion(); // Démarre le timer pour la première question
-    // Le timer principal gère l'affichage du temps restant pour la question actuelle
-    // Pas besoin de timer global pour le quiz entier pour l'instant.
+    resetTimerForQuestion();
 }
 
 function resetTimerForQuestion() {
@@ -637,12 +638,8 @@ function resetTimerForQuestion() {
         timerDisplay.textContent = `Temps restant : ${timeLeftForQuestion}s`;
         if (timeLeftForQuestion <= 0) {
             clearInterval(questionTimer);
-            // Simuler une mauvaise réponse ou passer à la question suivante
-            handleAnswer(false); // Réponse incorrecte due au temps écoulé
-            // Pas besoin de nextBtn.click() ici, handleAnswer gère déjà le passage à la question suivante en mode survie.
-            // Pour les autres modes, le "Suivant" est cliqué manuellement ou par le timer.
+            handleAnswer(false);
             if (selectedGameMode !== 'survival') {
-                // Force next question if not in survival mode and time runs out
                 currentQuestionIndex++;
                 updateQuestion();
             }
@@ -658,10 +655,10 @@ function stopTimer() {
 function handleAnswer(isCorrect) {
     const currentQuestion = questionsForThisQuiz[currentQuestionIndex];
     const promptHash = stringToHash(currentQuestion.prompt);
-    let questionResults = {}; // Pour stocker le résultat de cette question pour saveQuizStats
+    let questionResults = {};
 
     if (isCorrect) {
-        score += DIFFICULTY_POINTS[currentQuestion.difficulty || 'easy']; // Ajoute des points pondérés
+        score += DIFFICULTY_POINTS[currentQuestion.difficulty || 'easy'];
         feedbackEl.className = 'feedback correct';
         feedbackEl.textContent = "✅ Bonne réponse !";
         questionResults[promptHash] = 'correct';
@@ -675,13 +672,13 @@ function handleAnswer(isCorrect) {
         questionResults[promptHash] = 'incorrect';
 
         if (selectedGameMode === 'survival') {
-            endQuiz(true); // Termine le quiz immédiatement en mode survie
-            saveQuizStats(currentQuizData.quizId, score, currentQuestionIndex + 1, questionResults); // Sauvegarde les stats avant de quitter
+            endQuiz(true);
+            saveQuizStats(currentQuizData.quizId, score, currentQuestionIndex + 1, questionResults);
             return;
         }
     }
 
-    saveQuizStats(currentQuizData.quizId, score, currentQuestionIndex + 1, questionResults); // Sauvegarde les stats à chaque question
+    saveQuizStats(currentQuizData.quizId, score, currentQuestionIndex + 1, questionResults);
     nextBtn.style.display = "block";
     scoreEl.textContent = `Score : ${score} / ${currentQuestionIndex + 1} (Q. ${currentQuestionIndex + 1}/${questionsForThisQuiz.length})`;
     form.style.display = "none";
@@ -690,7 +687,7 @@ function handleAnswer(isCorrect) {
 form.addEventListener("submit", function(e) {
     e.preventDefault();
     submitBtn.disabled = true;
-    stopTimer(); // Arrête le timer quand l'utilisateur répond
+    stopTimer();
     const userAnswer = answerSelect.value;
     const currentQuestion = questionsForThisQuiz[currentQuestionIndex];
     const correctAnswer = currentQuestion.answer;
@@ -706,7 +703,6 @@ explanationBtn.addEventListener("click", () => {
         feedbackEl.innerHTML += explicationText;
         explanationBtn.textContent = "Cacher l'explication";
     } else {
-        // Remet le feedback original sans l'explication
         const isCorrect = (answerSelect.value === currentQuestion.answer);
         if (isCorrect) {
             feedbackEl.textContent = "✅ Bonne réponse !";
@@ -723,7 +719,7 @@ nextBtn.addEventListener("click", () => {
 });
 
 function endQuiz(survivalFailed = false) {
-    stopTimer(); // S'assurer que le timer est arrêté
+    stopTimer();
 
     const quizLength = questionsForThisQuiz.length;
     phraseEl.textContent = "🎉 Quiz terminé !";
@@ -736,12 +732,11 @@ function endQuiz(survivalFailed = false) {
 
     const stats = getQuizStatsForCurrentUser(currentQuizData.quizId, selectedGameMode, selectedDifficulty);
 
-    // Vérifie si c'est un nouveau record
     if (score > stats.highScore) {
         stats.highScore = score;
         finalMessage += "\n\n✨ Nouveau record personnel ! Félicitations ! ✨";
     }
-    saveUsers(); // Sauvegarde finale des stats
+    saveUsers();
 
     feedbackEl.textContent = finalMessage;
 
@@ -750,15 +745,15 @@ function endQuiz(survivalFailed = false) {
     nextBtn.style.display = 'none';
     endQuizBtns.style.display = 'block';
     scoreEl.textContent = `Score final : ${score} / ${quizLength}`;
-    viewQuizStatsBtn.style.display = 'block'; // Afficher le bouton pour voir les stats du quiz terminé
+    viewQuizStatsBtn.style.display = 'block';
 }
 
-replayBtn.addEventListener('click', startQuiz); // Rejoue avec les mêmes options
+replayBtn.addEventListener('click', startQuiz);
 viewQuizStatsBtn.addEventListener('click', () => {
-    // Passe en mode affichage des statistiques
     selectionContainer.style.display = 'none';
     quizContainer.style.display = 'none';
-    dissertationContainer.style.display = 'none'; // Cacher la section dissertation
+    dissertationContainer.style.display = 'none';
+    dissertationPlanGameContainer.style.display = 'none'; // Cacher le jeu de plan
     statsContainer.style.display = 'block';
 
     statsUserName.textContent = activeUser.name;
@@ -780,7 +775,7 @@ viewQuizStatsBtn.addEventListener('click', () => {
         }
     }
     const sortedFailedQuestions = Object.entries(mostFailedQuestions)
-        .filter(([, data]) => data.incorrect > 0) // Only show questions answered incorrectly at least once
+        .filter(([, data]) => data.incorrect > 0)
         .sort((a, b) => (b[1].incorrect - b[1].correct) - (a[1].incorrect - a[1].correct))
         .slice(0, 5);
 
@@ -815,7 +810,7 @@ gameModeOptions.addEventListener('click', (e) => {
         Array.from(gameModeOptions.children).forEach(btn => btn.classList.remove('selected'));
         e.target.classList.add('selected');
         selectedGameMode = e.target.dataset.mode;
-        loadHighScore(); // Mettre à jour l'affichage du meilleur score pour la nouvelle sélection
+        loadHighScore();
     }
 });
 
@@ -824,7 +819,7 @@ difficultyOptions.addEventListener('click', (e) => {
         Array.from(difficultyOptions.children).forEach(btn => btn.classList.remove('selected'));
         e.target.classList.add('selected');
         selectedDifficulty = e.target.dataset.difficulty;
-        loadHighScore(); // Mettre à jour l'affichage du meilleur score pour la nouvelle sélection
+        loadHighScore();
     }
 });
 
@@ -832,7 +827,7 @@ startFiguresBtn.addEventListener('click', () => selectQuiz('figures'));
 startTonalitesBtn.addEventListener('click', () => selectQuiz('tonalites'));
 startSelectedQuizBtn.addEventListener('click', startQuiz);
 
-// --- NOUVELLES FONCTIONS POUR LA DISSERTATION ---
+// --- FONCTIONS POUR LA DISSERTATION (Simulation) ---
 function showDissertationSection() {
     if (!activeUser) {
         showMessageBox("Veuillez créer ou charger un profil utilisateur pour rédiger une dissertation.");
@@ -841,9 +836,9 @@ function showDissertationSection() {
     selectionContainer.style.display = 'none';
     quizContainer.style.display = 'none';
     statsContainer.style.display = 'none';
+    dissertationPlanGameContainer.style.display = 'none'; // Cacher le jeu de plan
     dissertationContainer.style.display = 'block';
 
-    // Initialiser le sélecteur de sujet ou afficher le sujet choisi
     if (selectedDissertationTopic) {
         dissertationTopicDisplay.textContent = `Sujet actuel : "${selectedDissertationTopic}"`;
         selectDissertationTopicBtn.style.display = 'block';
@@ -852,7 +847,6 @@ function showDissertationSection() {
         dissertationTopicDisplay.textContent = 'Aucun sujet sélectionné.';
         selectDissertationTopicBtn.style.display = 'none';
         dissertationTopicSelection.style.display = 'block';
-        // Remplir le sélecteur avec les sujets disponibles
         dissertationSubjectSelect.innerHTML = '<option value="" disabled selected>Sélectionnez un sujet</option>';
         dissertationTopics.forEach(topic => {
             const option = document.createElement('option');
@@ -862,18 +856,23 @@ function showDissertationSection() {
         });
     }
 
-    dissertationTextarea.value = ''; // Réinitialiser le texte
-    dissertationFeedback.innerHTML = ''; // Réinitialiser le feedback
+    dissertationTextarea.value = '';
+    dissertationFeedback.innerHTML = '';
     loadingIndicator.style.display = 'none';
 }
 
-startDissertationBtn.addEventListener('click', showDissertationSection);
+startDissertationBtn.addEventListener('click', () => {
+    showMessageBox("La fonctionnalité de rédaction et d'analyse de dissertation est actuellement en développement. Veuillez utiliser le jeu de 'Plan de Dissertation' à la place !");
+    // Optionally still show the section but keep analyze button disabled
+    showDissertationSection();
+});
+
 
 selectDissertationTopicBtn.addEventListener('click', () => {
     dissertationTopicDisplay.textContent = 'Aucun sujet sélectionné.';
     selectDissertationTopicBtn.style.display = 'none';
     dissertationTopicSelection.style.display = 'block';
-    dissertationSubjectSelect.value = ''; // Réinitialiser la sélection
+    dissertationSubjectSelect.value = '';
 });
 
 confirmDissertationTopicBtn.addEventListener('click', () => {
@@ -890,86 +889,21 @@ confirmDissertationTopicBtn.addEventListener('click', () => {
 });
 
 analyzeDissertationBtn.addEventListener('click', async () => {
-    if (!activeUser) {
-        showMessageBox("Veuillez créer ou charger un profil utilisateur.");
-        return;
-    }
-    if (!selectedDissertationTopic) {
-        showMessageBox("Veuillez d'abord sélectionner un sujet de dissertation.");
-        return;
-    }
-    const dissertationContent = dissertationTextarea.value.trim();
-    if (dissertationContent.length < 50) {
-        showMessageBox("Votre texte est trop court pour une analyse pertinente. Veuillez écrire au moins 50 caractères.");
-        return;
-    }
-
-    loadingIndicator.style.display = 'block';
-    analyzeDissertationBtn.disabled = true;
-    dissertationFeedback.innerHTML = ''; // Clear previous feedback
-
-    try {
-        const feedback = await callAIAnalysisAPI(selectedDissertationTopic, dissertationContent); // Appel à la vraie fonction
-        
-        // Afficher le feedback structuré de l'IA
-        let feedbackHtml = `<h3>Bilan de l'IA :</h3><p>${feedback.generalSummary}</p>`;
-        
-        if (feedback.strengths && feedback.strengths.length > 0) {
-            feedbackHtml += `<h3>Points Forts :</h3><ul>`;
-            feedback.strengths.forEach(point => {
-                feedbackHtml += `<li>✅ ${point}</li>`;
-            });
-            feedbackHtml += `</ul>`;
-        }
-
-        if (feedback.improvements && feedback.improvements.length > 0) {
-            feedbackHtml += `<h3>Axes d'Amélioration :</h3><ul>`;
-            feedback.improvements.forEach(point => {
-                feedbackHtml += `<li>⚠️ ${point}</li>`;
-            });
-            feedbackHtml += `</ul>`;
-        }
-        
-        feedbackHtml += `<p><em>Ce feedback est une simulation de la structure de réponse d'une IA. Une véritable IA fournirait une analyse plus détaillée et contextuelle après intégration d'un backend.</em></p>`;
-
-        dissertationFeedback.innerHTML = feedbackHtml;
-
-        // Enregistrer l'analyse dans l'historique de l'utilisateur
-        activeUser.dissertationHistory.push({
-            topic: selectedDissertationTopic,
-            content: dissertationContent,
-            feedback: feedbackHtml, // Sauvegarder le HTML généré pour affichage futur
-            timestamp: new Date().toISOString()
-        });
-        saveUsers();
-
-    } catch (error) {
-        console.error("Erreur lors de l'analyse de la dissertation :", error);
-        dissertationFeedback.innerHTML = `<p class="feedback incorrect">Une erreur est survenue lors de l'analyse. Veuillez réessayer.</p>`;
-    } finally {
-        loadingIndicator.style.display = 'none';
-        analyzeDissertationBtn.disabled = false;
-    }
+    // This button is now disabled in HTML, but keeping the function for completeness
+    showMessageBox("La fonctionnalité d'analyse de dissertation est désactivée pour le moment.");
+    return; // Prevent execution
 });
+
 
 backToMenuFromDissertationBtn.addEventListener('click', showMenu);
 
 /**
  * Simule l'appel à une API backend pour l'analyse de dissertation par une IA.
- * DANS UNE VRAIE APPLICATION, CELA SERAIT UN APPEL `fetch` VERS UN BACKEND SÉCURISÉ,
- * ET NON UNE LOGIQUE DIRECTE D'ANALYSE CÔTÉ CLIENT AVEC UNE CLÉ API EXPOSÉE.
- * Le backend interagirait ensuite avec une API de modèle de langage (ex: Gemini API).
- *
- * @param {string} topic Le sujet de la dissertation.
- * @param {string} content Le contenu de la dissertation ou du plan.
- * @returns {Promise<object>} Le feedback de l'IA au format JSON.
+ * (Fonctionnalité désactivée / non implémentée avec une vraie IA pour le moment)
  */
 async function callAIAnalysisAPI(topic, content) {
-    // --- DÉBUT DE LA SIMULATION (À REMPLACER PAR UN VRAI APPEL API) ---
-    // Simuler le délai de l'appel API
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Définir une réponse structurée simulée
     const simulatedResponse = {
         generalSummary: "Votre dissertation montre un bon potentiel, mais nécessite une structuration plus rigoureuse et une meilleure utilisation des exemples.",
         strengths: [],
@@ -979,7 +913,6 @@ async function callAIAnalysisAPI(topic, content) {
     const wordCount = content.split(/\s+/).filter(word => word.length > 0).length;
     const paragraphCount = content.split(/\n\s*\n/).filter(p => p.trim().length > 0).length;
 
-    // Analyse de la longueur
     if (wordCount < 150) {
         simulatedResponse.improvements.push(`Le texte est un peu court (${wordCount} mots). Pour une dissertation complète, visez au moins 500-800 mots afin d'approfondir vos arguments.`);
     } else if (wordCount < 500) {
@@ -989,7 +922,6 @@ async function callAIAnalysisAPI(topic, content) {
         simulatedResponse.strengths.push(`Excellent volume de texte (${wordCount} mots), vous avez bien développé vos idées.`);
     }
 
-    // Analyse de la structure
     if (paragraphCount < 3) {
         simulatedResponse.improvements.push("Assurez-vous d'avoir une introduction, un développement (en plusieurs parties) et une conclusion clairement distincts.");
     } else if (paragraphCount < 5) {
@@ -999,14 +931,12 @@ async function callAIAnalysisAPI(topic, content) {
         simulatedResponse.strengths.push("Votre structure semble bien organisée avec un bon découpage en paragraphes.");
     }
 
-    // Vérification de la problématique
     if (content.toLowerCase().includes("problématique") || content.includes("?")) {
         simulatedResponse.strengths.push("La problématique est présente ou clairement suggérée en introduction.");
     } else {
         simulatedResponse.improvements.push("Pensez à clairement énoncer une problématique forte et pertinente en introduction, c'est le fil conducteur de votre dissertation.");
     }
 
-    // Pertinence au sujet
     const topicKeywords = topic.toLowerCase().split(' ').filter(w => w.length > 3);
     let relevantKeywordsFound = 0;
     topicKeywords.forEach(keyword => {
@@ -1020,7 +950,6 @@ async function callAIAnalysisAPI(topic, content) {
         simulatedResponse.improvements.push("Vérifiez que vous répondez précisément au sujet. Assurez-vous d'utiliser les termes clés du sujet tout au long de votre argumentation pour éviter le hors-sujet.");
     }
 
-    // Placeholders pour une analyse réelle (orthographe, grammaire, style)
     simulatedResponse.improvements.push("**Orthographe & Grammaire :** Relisez attentivement votre texte. Une IA réelle pourrait identifier et suggérer des corrections pour les fautes d'orthographe, de grammaire et de ponctuation.");
     simulatedResponse.improvements.push("**Style & Fluidité :** Variez la longueur et la structure de vos phrases pour un style plus dynamique. Évitez les répétitions et utilisez un vocabulaire plus précis. Une IA pourrait détecter les lourdeurs de style.");
     simulatedResponse.improvements.push("**Exemples & Arguments :** Chaque argument devrait être illustré par des exemples précis et analysés. Assurez-vous que vos exemples sont pertinents et expliqués en relation avec votre argument.");
@@ -1028,49 +957,142 @@ async function callAIAnalysisAPI(topic, content) {
 
 
     return simulatedResponse;
-    // --- FIN DE LA SIMULATION ---
+}
 
+// --- NOUVEAU JEU : PLAN DE DISSERTATION ---
+startDissertationPlanBtn.addEventListener('click', showDissertationPlanGame);
 
-    /*
-    // --- DÉBUT DU VRAI APPEL API (EXEMPLE) ---
-    // ATTENTION : L'URL CI-DESSOUS EST UN EXEMPLE. VOUS DEVRIEZ LA REMPLACER PAR L'URL DE VOTRE BACKEND.
-    // L'API_KEY NE DOIT JAMAIS ÊTRE EXPOSÉE CÔTÉ CLIENT. ELLE DOIT RESTER SUR VOTRE BACKEND.
-    const apiUrl = '/api/analyze-dissertation'; // Exemple d'endpoint sur votre backend
+function showDissertationPlanGame() {
+    if (!activeUser) {
+        showMessageBox("Veuillez créer ou charger un profil utilisateur pour jouer au jeu de Plan de Dissertation.");
+        return;
+    }
+    selectionContainer.style.display = 'none';
+    quizContainer.style.display = 'none';
+    statsContainer.style.display = 'none';
+    dissertationContainer.style.display = 'none';
+    dissertationPlanGameContainer.style.display = 'block';
+    
+    generateNewPlan();
+}
 
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                // N'ajoutez PAS votre clé API ici. Le backend s'en chargera.
-            },
-            body: JSON.stringify({ topic, content })
+function generateNewPlan() {
+    planFeedback.innerHTML = '';
+    checkPlanBtn.style.display = 'block';
+    newPlanBtn.style.display = 'none';
+
+    // Make a copy and shuffle it
+    const shuffledElements = [...dissertationPlanElements];
+    shuffleArray(shuffledElements);
+    correctPlanOrder = dissertationPlanElements; // Store the correct order
+
+    sortablePlanBlocks.innerHTML = '';
+    shuffledElements.forEach((text, index) => {
+        const block = document.createElement('div');
+        block.classList.add('plan-block');
+        block.setAttribute('draggable', 'true');
+        block.dataset.index = index; // Store initial index for no particular reason other than identification
+        block.innerHTML = `<span class="plan-block-handle">☰</span> ${text}`;
+        sortablePlanBlocks.appendChild(block);
+    });
+
+    addDragAndDropListeners();
+}
+
+function addDragAndDropListeners() {
+    const blocks = sortablePlanBlocks.querySelectorAll('.plan-block');
+    let draggedItem = null;
+
+    // Helper function to get the draggable element before which to insert
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.plan-block:not(.dragging)')];
+
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2; // Calculate offset from the center of the child
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: -Infinity }).element;
+    }
+
+    blocks.forEach(block => {
+        block.addEventListener('dragstart', (e) => {
+            draggedItem = block;
+            e.dataTransfer.effectAllowed = 'move'; // Explicitly set effect allowed
+            setTimeout(() => {
+                block.classList.add('dragging');
+            }, 0);
         });
 
-        if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}`);
-        }
+        block.addEventListener('dragend', () => {
+            draggedItem.classList.remove('dragging');
+            draggedItem = null;
+        });
+    });
 
-        const result = await response.json();
-        return result; // L'IA renverrait un objet JSON avec l'analyse
-    } catch (error) {
-        console.error("Erreur lors de l'appel à l'API d'analyse de dissertation :", error);
-        throw error;
-    }
-    // --- FIN DU VRAI APPEL API (EXEMPLE) ---
-    */
+    sortablePlanBlocks.addEventListener('dragover', (e) => {
+        e.preventDefault(); // Crucial: allow drop
+        sortablePlanBlocks.classList.add('drag-over'); // Visual feedback for container
+
+        if (draggedItem) { // Only proceed if an item is being dragged
+            const afterElement = getDragAfterElement(sortablePlanBlocks, e.clientY);
+            if (afterElement == null) {
+                sortablePlanBlocks.appendChild(draggedItem);
+            } else {
+                sortablePlanBlocks.insertBefore(draggedItem, afterElement);
+            }
+        }
+    });
+
+    sortablePlanBlocks.addEventListener('dragleave', () => {
+        sortablePlanBlocks.classList.remove('drag-over');
+    });
+
+    sortablePlanBlocks.addEventListener('drop', () => {
+        sortablePlanBlocks.classList.remove('drag-over');
+    });
 }
+
+checkPlanBtn.addEventListener('click', checkPlanOrder);
+
+function checkPlanOrder() {
+    const currentOrderElements = Array.from(sortablePlanBlocks.children);
+    const currentOrderTexts = currentOrderElements.map(block => block.textContent.replace('☰ ', '').trim());
+
+    let isCorrect = true;
+    for (let i = 0; i < correctPlanOrder.length; i++) {
+        if (currentOrderTexts[i] !== correctPlanOrder[i]) {
+            isCorrect = false;
+            break;
+        }
+    }
+
+    if (isCorrect) {
+        planFeedback.textContent = "✅ Félicitations ! Le plan est parfait !";
+        planFeedback.className = 'feedback correct';
+    } else {
+        planFeedback.textContent = "❌ Ce n'est pas le bon ordre. Réessayez !";
+        planFeedback.className = 'feedback incorrect';
+    }
+    checkPlanBtn.style.display = 'none';
+    newPlanBtn.style.display = 'block';
+}
+
+newPlanBtn.addEventListener('click', generateNewPlan);
+backToMenuFromPlanBtn.addEventListener('click', showMenu);
 
 
 // --- Initialisation de la page ---
 async function initialize() {
     const savedTheme = localStorage.getItem('quizTheme') || 'light';
     applyTheme(savedTheme);
-    loadUsers(); // Charger les profils utilisateur
+    loadUsers();
     showMenu();
 }
 
-// Événements des boutons de profil
 createUserBtn.addEventListener('click', createUser);
 loadUserBtn.addEventListener('click', () => {
     const username = usernameInput.value.trim();
@@ -1081,7 +1103,6 @@ loadUserBtn.addEventListener('click', () => {
     }
 });
 viewStatsBtn.addEventListener('click', displayOverallStats);
-deleteUserBtn.addEventListener('click', deleteCurrentUser); // Ajout de l'écouteur pour le bouton de suppression
-
+deleteUserBtn.addEventListener('click', deleteCurrentUser);
 
 initialize();

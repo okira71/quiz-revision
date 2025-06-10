@@ -79,6 +79,15 @@ const planFeedback = document.getElementById('planFeedback');
 const newPlanBtn = document.getElementById('newPlanBtn');
 const backToMenuFromPlanBtn = document.getElementById('backToMenuFromPlanBtn');
 
+// Nouveaux éléments pour les barres de progression
+const figuresProgressBarFill = document.getElementById('figuresProgressBarFill');
+const figuresProgressText = document.getElementById('figuresProgressText');
+const tonalitesProgressBarFill = document.getElementById('tonalitesProgressBarFill');
+const tonalitesProgressText = document.getElementById('tonalitesProgressText');
+const dissertationPlanProgressBarFill = document.getElementById('dissertationPlanProgressBarFill');
+const dissertationPlanProgressText = document.getElementById('dissertationPlanProgressText');
+const startUltimateChallengeBtn = document.getElementById('startUltimateChallengeBtn');
+
 
 // --- VARIABLES GLOBALES DU QUIZ ET DU PROFIL ---
 let allQuizData = {
@@ -204,11 +213,22 @@ const dissertationPlanElements = [
     "Conclusion : Ouverture"
 ];
 
+// Définition du défi ultime
+const ultimateChallengeData = {
+    quizId: "ultimate-challenge",
+    title: "🔥 DÉFI ULTIME : Casse-tête infernal ! 🔥",
+    defaultLength: 50, // 50 questions
+    timePerQuestion: 10, // 10 secondes par question
+    lives: 3, // 3 vies
+    questions: [] // Rempli dynamiquement
+};
+
 
 let currentQuizData = null;
 let questionsForThisQuiz = [];
 let currentQuestionIndex = 0;
 let score = 0;
+let remainingLives = 0; // Pour le mode Défi Ultime
 
 let activeUser = null;
 let users = {};
@@ -216,7 +236,7 @@ let users = {};
 let selectedGameMode = 'normal';
 let selectedDifficulty = 'any';
 let quizTimer = null;
-const TIME_PER_QUESTION_SECONDS = 15;
+const TIME_PER_QUESTION_SECONDS = 15; // Default time per question
 
 let selectedDissertationTopic = '';
 
@@ -236,6 +256,17 @@ function loadUsers() {
     const storedUsers = localStorage.getItem('quizUsers');
     if (storedUsers) {
         users = JSON.parse(storedUsers);
+        // Convert overallCompletedQuestions arrays back to Sets
+        for (const userId in users) {
+            for (const quizId in users[userId].quizStats) {
+                if (users[userId].quizStats[quizId].overallCompletedQuestions) {
+                    users[userId].quizStats[quizId].overallCompletedQuestions = new Set(users[userId].quizStats[quizId].overallCompletedQuestions);
+                } else {
+                    // Initialize if missing (e.g., from older user data)
+                    users[userId].quizStats[quizId].overallCompletedQuestions = new Set();
+                }
+            }
+        }
         const activeUserId = localStorage.getItem('activeQuizUser');
         if (activeUserId && users[activeUserId]) {
             activeUser = users[activeUserId];
@@ -248,7 +279,16 @@ function loadUsers() {
 }
 
 function saveUsers() {
-    localStorage.setItem('quizUsers', JSON.stringify(users));
+    // Before saving, convert Sets back to Arrays for localStorage
+    const usersToSave = JSON.parse(JSON.stringify(users)); // Deep copy to avoid modifying original
+    for (const userId in usersToSave) {
+        for (const quizId in usersToSave[userId].quizStats) {
+            if (usersToSave[userId].quizStats[quizId].overallCompletedQuestions) {
+                usersToSave[userId].quizStats[quizId].overallCompletedQuestions = Array.from(usersToSave[userId].quizStats[quizId].overallCompletedQuestions);
+            }
+        }
+    }
+    localStorage.setItem('quizUsers', JSON.stringify(usersToSave));
     if (activeUser) {
         localStorage.setItem('activeQuizUser', activeUser.id);
     } else {
@@ -270,7 +310,12 @@ function createUser() {
     const newUser = {
         id: username,
         name: username,
-        quizStats: {},
+        quizStats: {
+            'figures': { overallCompletedQuestions: new Set() },
+            'tonalites': { overallCompletedQuestions: new Set() },
+            'dissertationPlan': { isCompleted: false },
+            'ultimate-challenge': { highScore: 0 } // Add stats for ultimate challenge
+        },
         dissertationHistory: []
     };
     users[username] = newUser;
@@ -281,6 +326,7 @@ function createUser() {
     viewStatsBtn.style.display = 'block';
     deleteUserBtn.style.display = 'block';
     renderProfileList();
+    updateProgressBars(); // Update progress for new user
 }
 
 function loadUser(username) {
@@ -289,12 +335,26 @@ function loadUser(username) {
         return;
     }
     activeUser = users[username];
-    saveUsers();
+    // Ensure all necessary stats fields are initialized for older users
+    if (!activeUser.quizStats['figures']) activeUser.quizStats['figures'] = { overallCompletedQuestions: new Set() };
+    if (!activeUser.quizStats['figures'].overallCompletedQuestions) activeUser.quizStats['figures'].overallCompletedQuestions = new Set();
+    
+    if (!activeUser.quizStats['tonalites']) activeUser.quizStats['tonalites'] = { overallCompletedQuestions: new Set() };
+    if (!activeUser.quizStats['tonalites'].overallCompletedQuestions) activeUser.quizStats['tonalites'].overallCompletedQuestions = new Set();
+    
+    if (!activeUser.quizStats['dissertationPlan']) activeUser.quizStats['dissertationPlan'] = { isCompleted: false };
+    if (typeof activeUser.quizStats['dissertationPlan'].isCompleted === 'undefined') activeUser.quizStats['dissertationPlan'].isCompleted = false;
+    
+    if (typeof activeUser.quizStats['ultimate-challenge'] === 'undefined') activeUser.quizStats['ultimate-challenge'] = { highScore: 0 };
+
+
+    saveUsers(); // Re-save to ensure Sets are properly handled and new fields added
     updateActiveUserDisplay();
     showMessageBox(`Profil '${username}' chargé !`);
     viewStatsBtn.style.display = 'block';
     deleteUserBtn.style.display = 'block';
     renderProfileList();
+    updateProgressBars(); // Update progress for loaded user
 }
 
 function deleteCurrentUser() {
@@ -369,24 +429,38 @@ function selectQuiz(quizId) {
 
 // --- LOGIQUE DU HIGH SCORE ET STATS UTILISATEUR ---
 
-function getQuizStatsForCurrentUser(quizId, gameMode, difficulty) {
+function getQuizStatsForCurrentUser(quizId, gameMode = null, difficulty = null) {
     if (!activeUser) return null;
     if (!activeUser.quizStats[quizId]) {
-        activeUser.quizStats[quizId] = {};
-    }
-    if (!activeUser.quizStats[quizId][gameMode]) {
-        activeUser.quizStats[quizId][gameMode] = {};
-    }
-    if (!activeUser.quizStats[quizId][gameMode][difficulty]) {
-        activeUser.quizStats[quizId][gameMode][difficulty] = {
-            highScore: 0,
-            totalPlayed: 0,
-            totalCorrect: 0,
-            totalQuestionsAnswered: 0,
-            questionPerformance: {}
+        // Initialize basic structure if it doesn't exist
+        activeUser.quizStats[quizId] = { 
+            overallCompletedQuestions: new Set(),
+            isCompleted: false, // For dissertationPlan
+            highScore: 0 // For ultimate-challenge
         };
     }
-    return activeUser.quizStats[quizId][gameMode][difficulty];
+    // For mode/difficulty specific stats, nest under 'modes'
+    if (gameMode && difficulty) {
+        if (!activeUser.quizStats[quizId].modes) {
+            activeUser.quizStats[quizId].modes = {};
+        }
+        if (!activeUser.quizStats[quizId].modes[gameMode]) {
+            activeUser.quizStats[quizId].modes[gameMode] = {};
+        }
+        if (!activeUser.quizStats[quizId].modes[gameMode][difficulty]) {
+            activeUser.quizStats[quizId].modes[gameMode][difficulty] = {
+                highScore: 0,
+                totalPlayed: 0,
+                totalCorrect: 0,
+                totalQuestionsAnswered: 0,
+                questionPerformance: {}
+            };
+        }
+        return activeUser.quizStats[quizId].modes[gameMode][difficulty];
+    } else {
+        // For overall quiz stats (like overallCompletedQuestions or isCompleted for plan)
+        return activeUser.quizStats[quizId];
+    }
 }
 
 function loadHighScore() {
@@ -394,30 +468,61 @@ function loadHighScore() {
         highScoreDisplay.textContent = '';
         return;
     }
-    const stats = getQuizStatsForCurrentUser(currentQuizData.quizId, selectedGameMode, selectedDifficulty);
-    const quizPossibleLength = currentQuizData.questions.filter(q => selectedDifficulty === 'any' || q.difficulty === selectedDifficulty).length;
-    highScoreDisplay.textContent = `🏆 Record (${activeUser.name} - ${selectedGameMode}, ${selectedDifficulty}) : ${stats.highScore} / ${currentQuizData.defaultLength || quizPossibleLength}`;
+    // Retrieve mode/difficulty specific high score
+    let stats;
+    if (currentQuizData.quizId === ultimateChallengeData.quizId) {
+        stats = getQuizStatsForCurrentUser(currentQuizData.quizId); // Ultimate challenge doesn't have mode/difficulty specific stats
+    } else {
+        stats = getQuizStatsForCurrentUser(currentQuizData.quizId, selectedGameMode, selectedDifficulty);
+    }
+
+    const quizPossibleLength = currentQuizData.questions ? currentQuizData.questions.length : 0;
+    
+    highScoreDisplay.textContent = `🏆 Record (${activeUser.name} - ${selectedGameMode}, ${selectedDifficulty}) : ${stats.highScore} / ${currentQuizData.defaultLength || quizPossibleLength || ultimateChallengeData.defaultLength}`;
 }
 
 function saveQuizStats(quizId, finalScore, totalQuestionsPlayed, questionResults) {
     if (!activeUser) return;
-    const stats = getQuizStatsForCurrentUser(quizId, selectedGameMode, selectedDifficulty);
-
-    stats.totalPlayed++;
-    stats.totalCorrect += finalScore;
-    stats.totalQuestionsAnswered += totalQuestionsPlayed;
+    
+    // Update mode/difficulty specific stats
+    let modeDifficultyStats;
+    if (quizId === ultimateChallengeData.quizId) {
+        modeDifficultyStats = getQuizStatsForCurrentUser(quizId);
+    } else {
+        modeDifficultyStats = getQuizStatsForCurrentUser(quizId, selectedGameMode, selectedDifficulty);
+    }
+    
+    modeDifficultyStats.totalPlayed = (modeDifficultyStats.totalPlayed || 0) + 1;
+    modeDifficultyStats.totalCorrect = (modeDifficultyStats.totalCorrect || 0) + finalScore;
+    modeDifficultyStats.totalQuestionsAnswered = (modeDifficultyStats.totalQuestionsAnswered || 0) + totalQuestionsPlayed;
 
     for (const promptHash in questionResults) {
-        if (!stats.questionPerformance[promptHash]) {
-            stats.questionPerformance[promptHash] = { correct: 0, incorrect: 0 };
+        if (!modeDifficultyStats.questionPerformance) {
+            modeDifficultyStats.questionPerformance = {};
+        }
+        if (!modeDifficultyStats.questionPerformance[promptHash]) {
+            modeDifficultyStats.questionPerformance[promptHash] = { correct: 0, incorrect: 0 };
         }
         if (questionResults[promptHash] === 'correct') {
-            stats.questionPerformance[promptHash].correct++;
+            modeDifficultyStats.questionPerformance[promptHash].correct++;
+            // If answered correctly, add to overall completed questions (for non-revision modes)
+            if (selectedGameMode !== 'revision' && quizId !== ultimateChallengeData.quizId) { // Ultimate challenge does not contribute to overall completion percentage for individual quizzes
+                const overallStats = getQuizStatsForCurrentUser(quizId);
+                if (overallStats && overallStats.overallCompletedQuestions) {
+                    overallStats.overallCompletedQuestions.add(promptHash);
+                }
+            }
         } else {
-            stats.questionPerformance[promptHash].incorrect++;
+            modeDifficultyStats.questionPerformance[promptHash].incorrect++;
         }
     }
+
+    if (finalScore > modeDifficultyStats.highScore) {
+        modeDifficultyStats.highScore = finalScore;
+    }
+
     saveUsers();
+    updateProgressBars(); // Recalculate progress after saving stats
 }
 
 function displayOverallStats() {
@@ -438,21 +543,38 @@ function displayOverallStats() {
     let mostFailedQuestions = {};
 
     for (const quizId in activeUser.quizStats) {
-        for (const mode in activeUser.quizStats[quizId]) {
-            for (const difficulty in activeUser.quizStats[quizId][mode]) {
-                const stats = activeUser.quizStats[quizId][mode][difficulty];
-                totalHighScoreSum += stats.highScore;
+        // Handle overall stats (like isCompleted for dissertationPlan or highScore for ultimate-challenge)
+        if (quizId === 'dissertationPlan') {
+            // No high score to add here for dissertationPlan
+        } else if (quizId === 'ultimate-challenge') {
+            totalHighScoreSum += activeUser.quizStats[quizId].highScore;
+        }
 
-                for (const promptHash in stats.questionPerformance) {
-                    const qPerf = stats.questionPerformance[promptHash];
-                    const questionData = findQuestionByHash(quizId, promptHash);
-                    if (questionData) {
-                        const prompt = questionData.prompt;
-                        if (!mostFailedQuestions[prompt]) {
-                            mostFailedQuestions[prompt] = { correct: 0, incorrect: 0 };
+        // Iterate over modes for quizzes with specific modes (Figures, Tonalites)
+        if (activeUser.quizStats[quizId].modes) {
+            for (const mode in activeUser.quizStats[quizId].modes) {
+                for (const difficulty in activeUser.quizStats[quizId].modes[mode]) {
+                    const stats = activeUser.quizStats[quizId].modes[mode][difficulty];
+                    // Add high score from mode-specific stats if not ultimate challenge
+                    if (quizId !== 'ultimate-challenge') {
+                        totalHighScoreSum += stats.highScore;
+                    }
+
+                    for (const promptHash in stats.questionPerformance) {
+                        // Find the original question text from allQuizData
+                        let questionData = null;
+                        if (allQuizData[quizId]) {
+                            questionData = findQuestionByHash(quizId, promptHash);
                         }
-                        mostFailedQuestions[prompt].correct += qPerf.correct;
-                        mostFailedQuestions[prompt].incorrect += qPerf.incorrect;
+                        
+                        if (questionData) {
+                            const prompt = questionData.prompt;
+                            if (!mostFailedQuestions[prompt]) {
+                                mostFailedQuestions[prompt] = { correct: 0, incorrect: 0 };
+                            }
+                            mostFailedQuestions[prompt].correct += stats.questionPerformance[promptHash].correct;
+                            mostFailedQuestions[prompt].incorrect += stats.questionPerformance[promptHash].incorrect;
+                        }
                     }
                 }
             }
@@ -479,11 +601,16 @@ function displayOverallStats() {
 }
 
 function findQuestionByHash(quizId, promptHash) {
-    const quiz = allQuizData[quizId];
-    if (quiz) {
-        return quiz.questions.find(q => stringToHash(q.prompt) === promptHash);
+    let quizQuestions = [];
+    if (allQuizData[quizId]) {
+        quizQuestions = allQuizData[quizId].questions;
+    } else if (quizId === ultimateChallengeData.quizId) {
+        // For ultimate challenge, we combine questions from all quizzes
+        quizQuestions = [...allQuizData['figures'].questions, ...allQuizData['tonalites'].questions];
+        // Add specific ultimate challenge plan questions if they are distinct
+        quizQuestions.push(...ultimateChallengeData.questions.filter(q => q.quizId === ultimateChallengeData.quizId)); // This filters out original quiz questions
     }
-    return null;
+    return quizQuestions.find(q => stringToHash(q.prompt) === promptHash);
 }
 
 
@@ -535,6 +662,7 @@ function showMenu() {
         btn.classList.remove('selected');
         if (btn.dataset.difficulty === 'any') btn.classList.add('selected');
     });
+    updateProgressBars(); // Ensure progress bars are updated when returning to menu
 }
 
 function startQuiz() {
@@ -548,9 +676,19 @@ function startQuiz() {
     }
 
     let availableQuestions = [...currentQuizData.questions];
-    if (selectedDifficulty !== 'any') {
+    
+    // For regular quizzes, apply difficulty filter
+    if (currentQuizData.quizId !== ultimateChallengeData.quizId && selectedDifficulty !== 'any') {
         availableQuestions = availableQuestions.filter(q => q.difficulty === selectedDifficulty);
     }
+    // For Ultimate Challenge, all questions are used, and difficulty is hardcoded
+    if (currentQuizData.quizId === ultimateChallengeData.quizId) {
+        selectedGameMode = 'ultimate-challenge';
+        selectedDifficulty = 'hard';
+        // Ensure defaultLength is used for ultimate challenge
+        availableQuestions = availableQuestions.slice(0, ultimateChallengeData.defaultLength);
+    }
+
 
     if (selectedGameMode === 'revision') {
         const stats = getQuizStatsForCurrentUser(currentQuizData.quizId, selectedGameMode, selectedDifficulty);
@@ -595,11 +733,12 @@ function startQuiz() {
 
     currentQuestionIndex = 0;
     score = 0;
+    remainingLives = (selectedGameMode === 'ultimate-challenge' || selectedGameMode === 'survival') ? ultimateChallengeData.lives : 0; // Initialize lives for ultimate challenge & survival
 
     populateSelectOptions();
     updateQuestion();
 
-    if (selectedGameMode === 'timetrial') {
+    if (selectedGameMode === 'timetrial' || selectedGameMode === 'ultimate-challenge') {
         startTimer();
         timerDisplay.style.display = 'block';
     } else {
@@ -623,6 +762,9 @@ function updateQuestion() {
     feedbackEl.innerHTML = "";
     feedbackEl.className = 'feedback';
     scoreEl.textContent = `Score : ${score} / ${currentQuestionIndex} (Q. ${currentQuestionIndex + 1}/${questionsForThisQuiz.length})`;
+    if (selectedGameMode === 'ultimate-challenge' || selectedGameMode === 'survival') {
+        scoreEl.textContent += ` | Vies : ${remainingLives}`;
+    }
     form.style.display = "block";
     submitBtn.style.display = "block";
     submitBtn.disabled = false;
@@ -630,8 +772,8 @@ function updateQuestion() {
     const progress = (currentQuestionIndex / questionsForThisQuiz.length) * 100;
     progressBarFill.style.width = `${progress}%`;
 
-    if (selectedGameMode === 'timetrial') {
-        resetTimerForQuestion();
+    if (selectedGameMode === 'timetrial' || selectedGameMode === 'ultimate-challenge') {
+        resetTimerForQuestion(currentQuizData.timePerQuestion || TIME_PER_QUESTION_SECONDS);
     }
 }
 
@@ -639,12 +781,12 @@ let questionTimer = null;
 let timeLeftForQuestion = TIME_PER_QUESTION_SECONDS;
 
 function startTimer() {
-    resetTimerForQuestion();
+    resetTimerForQuestion(currentQuizData.timePerQuestion || TIME_PER_QUESTION_SECONDS);
 }
 
-function resetTimerForQuestion() {
+function resetTimerForQuestion(timeLimit) {
     clearInterval(questionTimer);
-    timeLeftForQuestion = TIME_PER_QUESTION_SECONDS;
+    timeLeftForQuestion = timeLimit;
     timerDisplay.textContent = `Temps restant : ${timeLeftForQuestion}s`;
     questionTimer = setInterval(() => {
         timeLeftForQuestion--;
@@ -652,7 +794,7 @@ function resetTimerForQuestion() {
         if (timeLeftForQuestion <= 0) {
             clearInterval(questionTimer);
             handleAnswer(false);
-            if (selectedGameMode !== 'survival') {
+            if (selectedGameMode !== 'survival' && selectedGameMode !== 'ultimate-challenge') { // In survival/ultimate, wrong answer/timeout ends the game
                 currentQuestionIndex++;
                 updateQuestion();
             }
@@ -685,15 +827,29 @@ function handleAnswer(isCorrect) {
         questionResults[promptHash] = 'incorrect';
 
         if (selectedGameMode === 'survival') {
-            endQuiz(true);
+            endQuiz(true); // Game over for survival mode
+            // Save stats for survival mode
             saveQuizStats(currentQuizData.quizId, score, currentQuestionIndex + 1, questionResults);
             return;
+        } else if (selectedGameMode === 'ultimate-challenge') {
+            remainingLives--;
+            if (remainingLives <= 0) {
+                endQuiz(true); // Game over for ultimate challenge
+                // Save stats for ultimate challenge
+                saveQuizStats(currentQuizData.quizId, score, currentQuestionIndex + 1, questionResults);
+                return;
+            } else {
+                scoreEl.textContent = `Score : ${score} / ${currentQuestionIndex + 1} (Q. ${currentQuestionIndex + 1}/${questionsForThisQuiz.length}) | Vies : ${remainingLives}`;
+            }
         }
     }
 
     saveQuizStats(currentQuizData.quizId, score, currentQuestionIndex + 1, questionResults);
     nextBtn.style.display = "block";
     scoreEl.textContent = `Score : ${score} / ${currentQuestionIndex + 1} (Q. ${currentQuestionIndex + 1}/${questionsForThisQuiz.length})`;
+    if (selectedGameMode === 'ultimate-challenge' || selectedGameMode === 'survival') {
+        scoreEl.textContent += ` | Vies : ${remainingLives}`;
+    }
     form.style.display = "none";
 }
 
@@ -743,12 +899,21 @@ function endQuiz(survivalFailed = false) {
         finalMessage = `Game Over ! Tu as échoué en mode Survie. Ton score était de ${score}.`;
     }
 
-    const stats = getQuizStatsForCurrentUser(currentQuizData.quizId, selectedGameMode, selectedDifficulty);
-
-    if (score > stats.highScore) {
-        stats.highScore = score;
-        finalMessage += "\n\n✨ Nouveau record personnel ! Félicitations ! ✨";
+    // Special handling for Ultimate Challenge high score
+    if (currentQuizData.quizId === ultimateChallengeData.quizId) {
+        const ultimateStats = activeUser.quizStats[ultimateChallengeData.quizId];
+        if (score > ultimateStats.highScore) {
+            ultimateStats.highScore = score;
+            finalMessage += "\n\n✨ Nouveau record personnel pour le Défi Ultime ! Félicitations ! ✨";
+        }
+    } else {
+        const stats = getQuizStatsForCurrentUser(currentQuizData.quizId, selectedGameMode, selectedDifficulty);
+        if (score > stats.highScore) {
+            stats.highScore = score;
+            finalMessage += "\n\n✨ Nouveau record personnel ! Félicitations ! ✨";
+        }
     }
+
     saveUsers();
 
     feedbackEl.textContent = finalMessage;
@@ -770,21 +935,42 @@ viewQuizStatsBtn.addEventListener('click', () => {
     statsContainer.style.display = 'block';
 
     statsUserName.textContent = activeUser.name;
-    statsForQuizTitle.textContent = `${currentQuizData.title} (${selectedGameMode}, ${selectedDifficulty})`;
-    statsHighScore.textContent = getQuizStatsForCurrentUser(currentQuizData.quizId, selectedGameMode, selectedDifficulty).highScore;
+    // Determine quiz title for stats display
+    let statsQuizTitle = "";
+    if (currentQuizData && currentQuizData.quizId === ultimateChallengeData.quizId) {
+        statsQuizTitle = ultimateChallengeData.title;
+    } else if (currentQuizData) {
+        statsQuizTitle = `${currentQuizData.title} (${selectedGameMode}, ${selectedDifficulty})`;
+    } else {
+        statsQuizTitle = "tous les quiz";
+    }
+    statsForQuizTitle.textContent = statsQuizTitle;
+
+    // Retrieve high score for the specific quiz/mode
+    let currentHighScore = 0;
+    if (currentQuizData && currentQuizData.quizId === ultimateChallengeData.quizId) {
+        currentHighScore = activeUser.quizStats[ultimateChallengeData.quizId].highScore;
+    } else if (currentQuizData) {
+        currentHighScore = getQuizStatsForCurrentUser(currentQuizData.quizId, selectedGameMode, selectedDifficulty).highScore;
+    }
+    statsHighScore.textContent = currentHighScore;
+
 
     const stats = getQuizStatsForCurrentUser(currentQuizData.quizId, selectedGameMode, selectedDifficulty);
     const mostFailedQuestions = {};
-    for (const promptHash in stats.questionPerformance) {
-        const qPerf = stats.questionPerformance[promptHash];
-        const questionData = findQuestionByHash(currentQuizData.quizId, promptHash);
-        if (questionData) {
-            const prompt = questionData.prompt;
-            if (!mostFailedQuestions[prompt]) {
-                mostFailedQuestions[prompt] = { correct: 0, incorrect: 0 };
+    // Only process question performance if it exists for the current stats object
+    if (stats && stats.questionPerformance) {
+        for (const promptHash in stats.questionPerformance) {
+            const qPerf = stats.questionPerformance[promptHash];
+            const questionData = findQuestionByHash(currentQuizData.quizId, promptHash);
+            if (questionData) {
+                const prompt = questionData.prompt;
+                if (!mostFailedQuestions[prompt]) {
+                    mostFailedQuestions[prompt] = { correct: 0, incorrect: 0 };
+                }
+                mostFailedQuestions[prompt].correct += qPerf.correct;
+                mostFailedQuestions[prompt].incorrect += qPerf.incorrect;
             }
-            mostFailedQuestions[prompt].correct += qPerf.correct;
-            mostFailedQuestions[prompt].incorrect += qPerf.incorrect;
         }
     }
     const sortedFailedQuestions = Object.entries(mostFailedQuestions)
@@ -836,8 +1022,14 @@ difficultyOptions.addEventListener('click', (e) => {
     }
 });
 
-startFiguresBtn.addEventListener('click', () => selectQuiz('figures'));
-startTonalitesBtn.addEventListener('click', () => selectQuiz('tonalites'));
+startFiguresBtn.addEventListener('click', () => {
+    selectQuiz('figures');
+    gameOptionsSection.style.display = 'block'; // Show options after selecting quiz
+});
+startTonalitesBtn.addEventListener('click', () => {
+    selectQuiz('tonalites');
+    gameOptionsSection.style.display = 'block'; // Show options after selecting quiz
+});
 startSelectedQuizBtn.addEventListener('click', startQuiz);
 
 // --- FONCTIONS POUR LA DISSERTATION (Simulation) ---
@@ -1118,6 +1310,11 @@ function checkPlanOrder() {
     if (isCorrect) {
         planFeedback.textContent = "✅ Félicitations ! Le plan est parfait !";
         planFeedback.className = 'feedback correct';
+        if (activeUser) {
+            activeUser.quizStats['dissertationPlan'].isCompleted = true;
+            saveUsers();
+            updateProgressBars(); // Update progress after completing the plan game
+        }
     } else {
         planFeedback.textContent = "❌ Ce n'est pas le bon ordre. Réessayez !";
         planFeedback.className = 'feedback incorrect';
@@ -1129,13 +1326,117 @@ function checkPlanOrder() {
 newPlanBtn.addEventListener('click', generateNewPlan);
 backToMenuFromPlanBtn.addEventListener('click', showMenu);
 
+// --- FONCTIONS DE GESTION DE LA PROGRESSION ET DU DÉFI ULTIME ---
+
+function calculateGameProgress(quizId) {
+    if (!activeUser || !activeUser.quizStats[quizId]) {
+        return 0; // No user or quiz stats found
+    }
+
+    if (quizId === 'dissertationPlan') {
+        return activeUser.quizStats['dissertationPlan'].isCompleted ? 100 : 0;
+    } else {
+        const totalQuestions = allQuizData[quizId].questions.length;
+        if (totalQuestions === 0) return 0;
+        const completedQuestionsCount = activeUser.quizStats[quizId].overallCompletedQuestions.size;
+        return Math.floor((completedQuestionsCount / totalQuestions) * 100);
+    }
+}
+
+function updateProgressBars() {
+    if (!activeUser) {
+        // If no active user, set all to 0% and hide ultimate challenge button
+        figuresProgressBarFill.style.width = '0%';
+        figuresProgressText.textContent = '0%';
+        tonalitesProgressBarFill.style.width = '0%';
+        tonalitesProgressText.textContent = '0%';
+        dissertationPlanProgressBarFill.style.width = '0%';
+        dissertationPlanProgressText.textContent = '0%';
+        startUltimateChallengeBtn.style.display = 'none';
+        return;
+    }
+
+    const figuresProgress = calculateGameProgress('figures');
+    figuresProgressBarFill.style.width = `${figuresProgress}%`;
+    figuresProgressText.textContent = `${figuresProgress}%`;
+
+    const tonalitesProgress = calculateGameProgress('tonalites');
+    tonalitesProgressBarFill.style.width = `${tonalitesProgress}%`;
+    tonalitesProgressText.textContent = `${tonalitesProgress}%`;
+
+    const dissertationPlanProgress = calculateGameProgress('dissertationPlan');
+    dissertationPlanProgressBarFill.style.width = `${dissertationPlanProgress}%`;
+    dissertationPlanProgressText.textContent = `${dissertationPlanProgress}%`;
+
+    // Check if all games are 100% complete to unlock ultimate challenge
+    if (figuresProgress === 100 && tonalitesProgress === 100 && dissertationPlanProgress === 100) {
+        startUltimateChallengeBtn.style.display = 'block';
+    } else {
+        startUltimateChallengeBtn.style.display = 'none';
+    }
+}
+
+startUltimateChallengeBtn.addEventListener('click', startUltimateChallenge);
+
+function startUltimateChallenge() {
+    if (!activeUser) {
+        showMessageBox("Veuillez créer ou charger un profil utilisateur.");
+        return;
+    }
+
+    // Combine all questions from Figures de Style and Tonalités Littéraires
+    const allAvailableQuestions = [
+        ...allQuizData['figures'].questions,
+        ...allQuizData['tonalites'].questions
+    ];
+
+    // Add some generic "dissertation plan" questions if needed, or re-use existing elements for questions
+    // For now, let's just make it a random selection from existing questions.
+    // To make it more "dissertation plan" specific, we'd need new questions here.
+    // Example for a simple 'plan' question:
+    const planQuestions = [
+        {"prompt": "Quelle est la première étape d'une introduction de dissertation ?", "answer": "Accroche", "explication": "L'accroche est l'élément initial qui capte l'attention du lecteur et introduit le sujet.", "difficulty": "easy", "quizId": "ultimate-challenge-plan"},
+        {"prompt": "Que doit-on trouver après la problématique dans une introduction ?", "answer": "Annonce du Plan", "explication": "L'annonce du plan présente l'organisation des arguments qui seront développés dans le corps de la dissertation.", "difficulty": "easy", "quizId": "ultimate-challenge-plan"},
+        {"prompt": "Quel est le rôle d'une transition entre deux parties de développement ?", "answer": "Faire le lien et annoncer la suite", "explication": "Une transition assure la cohérence du raisonnement en résumant la partie précédente et en introduisant la suivante.", "difficulty": "medium", "quizId": "ultimate-challenge-plan"},
+        {"prompt": "Quels éléments composent généralement la conclusion d'une dissertation ?", "answer": "Bilan et Ouverture", "explication": "La conclusion récapitule les points essentiels et ouvre vers de nouvelles perspectives ou questions.", "difficulty": "medium", "quizId": "ultimate-challenge-plan"},
+        {"prompt": "Outre l'accroche, la problématique et l'annonce du plan, que trouve-t-on d'autre dans l'introduction ?", "answer": "Présentation du texte et de l'auteur", "explication": "Après l'accroche, il est crucial de présenter l'œuvre ou l'extrait étudié et son auteur avant d'énoncer la problématique.", "difficulty": "medium", "quizId": "ultimate-challenge-plan"},
+    ];
+
+    // Combine all questions, remove duplicates if necessary (using a Map for prompts)
+    const uniqueUltimateQuestionsMap = new Map();
+    [...allAvailableQuestions, ...planQuestions].forEach(q => {
+        const hash = stringToHash(q.prompt);
+        if (!uniqueUltimateQuestionsMap.has(hash)) {
+            uniqueUltimateQuestionsMap.set(hash, q);
+        }
+    });
+
+    ultimateChallengeData.questions = Array.from(uniqueUltimateQuestionsMap.values());
+    shuffleArray(ultimateChallengeData.questions);
+
+    // Limit to defaultLength if specified
+    ultimateChallengeData.questions = ultimateChallengeData.questions.slice(0, ultimateChallengeData.defaultLength);
+    
+    if (ultimateChallengeData.questions.length === 0) {
+        showMessageBox("Impossible de démarrer le Défi Ultime : pas assez de questions disponibles.");
+        showMenu();
+        return;
+    }
+
+    currentQuizData = ultimateChallengeData; // Set current quiz data to ultimate challenge
+    selectedGameMode = 'ultimate-challenge'; // Set specific game mode
+    selectedDifficulty = 'hard'; // Force difficulty to hard for ultimate challenge
+
+    startQuiz(); // Reuse the existing startQuiz logic
+}
+
 
 // --- Initialisation de la page ---
 async function initialize() {
     const savedTheme = localStorage.getItem('quizTheme') || 'light';
     applyTheme(savedTheme);
     loadUsers();
-    showMenu();
+    showMenu(); // Call showMenu to ensure progress bars are updated on load
 }
 
 createUserBtn.addEventListener('click', createUser);

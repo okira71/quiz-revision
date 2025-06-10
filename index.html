@@ -35,10 +35,39 @@
         <div class="menu-section">
             <h2>Choisir un Quiz</h2>
             <button id="startFiguresBtn" class="quiz-choice-btn">🧠 Figures de Style</button>
+            <div class="progress-section">
+                <label>Progression Figures de Style :</label>
+                <div class="progress-bar-container menu-progress-bar">
+                    <div class="progress-bar-fill" id="figuresProgressBarFill"></div>
+                </div>
+                <span id="figuresProgressText" class="progress-text">0%</span>
+            </div>
+
             <button id="startTonalitesBtn" class="quiz-choice-btn">📘 Tonalités Littéraires</button>
+            <div class="progress-section">
+                <label>Progression Tonalités Littéraires :</label>
+                <div class="progress-bar-container menu-progress-bar">
+                    <div class="progress-bar-fill" id="tonalitesProgressBarFill"></div>
+                </div>
+                <span id="tonalitesProgressText" class="progress-text">0%</span>
+            </div>
+
+            <button id="startDissertationPlanBtn" class="quiz-choice-btn">📝 Plan de Dissertation</button>
+            <div class="progress-section">
+                <label>Progression Plan de Dissertation :</label>
+                <div class="progress-bar-container menu-progress-bar">
+                    <div class="progress-bar-fill" id="dissertationPlanProgressBarFill"></div>
+                </div>
+                <span id="dissertationPlanProgressText" class="progress-text">0%</span>
+            </div>
+            
             <!-- Nouveau bouton pour la dissertation -->
             <button id="startDissertationBtn" class="quiz-choice-btn">✍️ Dissertation</button>
-            <button id="startDissertationPlanBtn" class="quiz-choice-btn">📝 Plan de Dissertation</button>
+
+            <!-- Défi Ultime -->
+            <button id="startUltimateChallengeBtn" class="quiz-choice-btn ultimate-challenge-btn" style="display: none;">
+                🔥 DÉFI ULTIME : Casse-tête infernal ! 🔥
+            </button>
         </div>
 
         <div class="menu-section" id="gameOptionsSection" style="display: none;">

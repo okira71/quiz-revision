@@ -29,7 +29,7 @@
             </div>
             <p style="font-size: 0.9em; margin-top: 15px;">Profil actif : <strong id="activeUserProfile">Aucun</strong></p>
             <button id="viewStatsBtn" style="display: none;">Voir mes Statistiques</button>
-            <button id="deleteUserBtn" style="display: none;">Supprimer Profil</button> <!-- Nouveau bouton de suppression -->
+            <button id="deleteUserBtn" style="display: none;">Supprimer Profil</button>
         </div>
 
         <div class="menu-section">
@@ -38,6 +38,7 @@
             <button id="startTonalitesBtn" class="quiz-choice-btn">📘 Tonalités Littéraires</button>
             <!-- Nouveau bouton pour la dissertation -->
             <button id="startDissertationBtn" class="quiz-choice-btn">✍️ Dissertation</button>
+            <button id="startDissertationPlanBtn" class="quiz-choice-btn">📝 Plan de Dissertation</button>
         </div>
 
         <div class="menu-section" id="gameOptionsSection" style="display: none;">
@@ -62,9 +63,10 @@
         </div>
     </div>
 
-    <!-- Nouvelle section pour la dissertation -->
+    <!-- Nouvelle section pour la dissertation (désactivée pour le moment) -->
     <div id="dissertationContainer" style="display: none;">
         <h1>Rédigez votre Dissertation</h1>
+        <p class="info-message">⚠️ La fonctionnalité de rédaction et d'analyse de dissertation est actuellement en développement. Veuillez utiliser le jeu de "Plan de Dissertation" !</p>
         <div class="menu-section">
             <h2>Sujet de Dissertation</h2>
             <p id="dissertationTopicDisplay"></p>
@@ -85,7 +87,7 @@
         <div class="menu-section">
             <h2>Votre Rédaction</h2>
             <textarea id="dissertationTextarea" rows="20" placeholder="Commencez à rédiger votre plan de dissertation ou votre dissertation complète ici..."></textarea>
-            <button id="analyzeDissertationBtn">Analyser ma Dissertation</button>
+            <button id="analyzeDissertationBtn" disabled>Analyser ma Dissertation</button> <!-- Désactivé -->
             <div id="loadingIndicator" style="display: none; margin-top: 15px; color: var(--phrase-color);">Analyse en cours...</div>
             <div id="dissertationFeedback" class="feedback" style="text-align: left;">
                 <!-- Le feedback de l'IA sera inséré ici -->
@@ -95,10 +97,24 @@
     </div>
     <!-- Fin de la nouvelle section dissertation -->
 
+    <!-- Nouveau jeu de Plan de Dissertation -->
+    <div id="dissertationPlanGameContainer" style="display: none;">
+        <h1>Reconstituez le Plan</h1>
+        <p class="info-message">Réordonnez les blocs pour former un plan de dissertation correct.</p>
+        <div id="sortablePlanBlocks" class="sortable-list">
+            <!-- Les blocs de plan seront insérés ici -->
+        </div>
+        <button id="checkPlanBtn">Vérifier le Plan</button>
+        <div id="planFeedback" class="feedback"></div>
+        <button id="newPlanBtn" style="display: none;">Nouveau Plan</button>
+        <button id="backToMenuFromPlanBtn">Retour au Menu Principal</button>
+    </div>
+    <!-- Fin du nouveau jeu -->
+
     <div id="quizContainer">
         <h1 id="quizTitle"></h1>
         <div id="highScoreDisplay"></div>
-        <div id="timerDisplay"></div> <!-- Nouveau : Affichage du timer -->
+        <div id="timerDisplay"></div>
         <div class="progress-bar-container">
             <div class="progress-bar-fill" id="progressBarFill"></div>
         </div>
@@ -115,7 +131,7 @@
         <div id="endQuizBtns" style="display: none;">
             <button id="replayBtn">Rejouer</button>
             <button id="backToMenuBtn">Retour au Menu</button>
-            <button id="viewQuizStatsBtn">Statistiques du Quiz</button> <!-- Nouveau bouton pour stats du quiz terminé -->
+            <button id="viewQuizStatsBtn">Statistiques du Quiz</button>
         </div>
     </div>
 

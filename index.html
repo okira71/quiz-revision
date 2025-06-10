@@ -36,6 +36,8 @@
             <h2>Choisir un Quiz</h2>
             <button id="startFiguresBtn" class="quiz-choice-btn">🧠 Figures de Style</button>
             <button id="startTonalitesBtn" class="quiz-choice-btn">📘 Tonalités Littéraires</button>
+            <!-- Nouveau bouton pour la dissertation -->
+            <button id="startDissertationBtn" class="quiz-choice-btn">✍️ Dissertation</button>
         </div>
 
         <div class="menu-section" id="gameOptionsSection" style="display: none;">
@@ -59,6 +61,39 @@
             <button id="startSelectedQuizBtn" style="margin-top: 20px;">Démarrer le Quiz</button>
         </div>
     </div>
+
+    <!-- Nouvelle section pour la dissertation -->
+    <div id="dissertationContainer" style="display: none;">
+        <h1>Rédigez votre Dissertation</h1>
+        <div class="menu-section">
+            <h2>Sujet de Dissertation</h2>
+            <p id="dissertationTopicDisplay"></p>
+            <button id="selectDissertationTopicBtn">Choisir un autre sujet</button>
+            <div id="dissertationTopicSelection" style="display: none;">
+                <label for="dissertationSubjectSelect">Choisissez un sujet :</label>
+                <select id="dissertationSubjectSelect">
+                    <option value="" disabled selected>Sélectionnez un sujet</option>
+                    <option value="La poésie est-elle seulement une affaire de sentiments ?">La poésie est-elle seulement une affaire de sentiments ?</option>
+                    <option value="Dans quelle mesure le roman est-il une ouverture sur le monde ?">Dans quelle mesure le roman est-il une ouverture sur le monde ?</option>
+                    <option value="Le théâtre a-t-il pour seule vocation de divertir ?">Le théâtre a-t-il pour seule vocation de divertir ?</option>
+                    <option value="Les personnages de fiction nous aident-ils à mieux comprendre le réel ?">Les personnages de fiction nous aident-ils à mieux comprendre le réel ?</option>
+                </select>
+                <button id="confirmDissertationTopicBtn">Confirmer le sujet</button>
+            </div>
+        </div>
+
+        <div class="menu-section">
+            <h2>Votre Rédaction</h2>
+            <textarea id="dissertationTextarea" rows="20" placeholder="Commencez à rédiger votre plan de dissertation ou votre dissertation complète ici..."></textarea>
+            <button id="analyzeDissertationBtn">Analyser ma Dissertation</button>
+            <div id="loadingIndicator" style="display: none; margin-top: 15px; color: var(--phrase-color);">Analyse en cours...</div>
+            <div id="dissertationFeedback" class="feedback" style="text-align: left;">
+                <!-- Le feedback de l'IA sera inséré ici -->
+            </div>
+            <button id="backToMenuFromDissertationBtn" style="margin-top: 20px;">Retour au Menu Principal</button>
+        </div>
+    </div>
+    <!-- Fin de la nouvelle section dissertation -->
 
     <div id="quizContainer">
         <h1 id="quizTitle"></h1>

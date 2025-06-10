@@ -296,6 +296,28 @@ function saveUsers() {
     }
 }
 
+function unlockUltimateChallenge() {
+    if (activeUser) {
+        // Unlock all questions for Figures and Tonalites
+        allQuizData['figures'].questions.forEach(q => {
+            activeUser.quizStats['figures'].overallCompletedQuestions.add(stringToHash(q.prompt));
+        });
+        allQuizData['tonalites'].questions.forEach(q => {
+            activeUser.quizStats['tonalites'].overallCompletedQuestions.add(stringToHash(q.prompt));
+        });
+        // Complete dissertation plan
+        activeUser.quizStats['dissertationPlan'].isCompleted = true;
+        // Set a high score for ultimate challenge if not already set (or set to 0 for a true "new" score)
+        if (activeUser.quizStats['ultimate-challenge'].highScore === 0) {
+             activeUser.quizStats['ultimate-challenge'].highScore = 0; // Or some initial value like 1
+        }
+        saveUsers();
+        updateProgressBars();
+        showMessageBox("🎉 Code secret activé ! Le Défi Ultime est débloqué !");
+    }
+}
+
+
 function createUser() {
     const username = usernameInput.value.trim();
     if (username.length < 3) {
@@ -327,6 +349,11 @@ function createUser() {
     deleteUserBtn.style.display = 'block';
     renderProfileList();
     updateProgressBars(); // Update progress for new user
+
+    // Easter egg check
+    if (username.toLowerCase() === 'le kk' || username.toLowerCase() === 'cuit') {
+        unlockUltimateChallenge();
+    }
 }
 
 function loadUser(username) {
@@ -355,6 +382,11 @@ function loadUser(username) {
     deleteUserBtn.style.display = 'block';
     renderProfileList();
     updateProgressBars(); // Update progress for loaded user
+
+    // Easter egg check
+    if (username.toLowerCase() === 'le kk' || username.toLowerCase() === 'cuit') {
+        unlockUltimateChallenge();
+    }
 }
 
 function deleteCurrentUser() {
@@ -733,7 +765,7 @@ function startQuiz() {
 
     currentQuestionIndex = 0;
     score = 0;
-    remainingLives = (selectedGameMode === 'ultimate-challenge' || selectedGameMode === 'survival') ? ultimateChallengeData.lives : 0; // Initialize lives for ultimate challenge & survival
+    remainingLives = (selectedGameMode === 'ultimate-challenge' || selectedGameMode === 'survival') ? ultimateChallengeData.lives : 0; // Initialize lives for ultimate challenge
 
     populateSelectOptions();
     updateQuestion();

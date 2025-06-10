@@ -130,7 +130,8 @@ body {
     color: var(--text-color);
 }
 .menu-section input[type="text"],
-.menu-section select {
+.menu-section select,
+#dissertationTextarea { /* Ajout de la textarea ici */
     width: calc(100% - 20px);
     padding: 10px;
     margin-bottom: 15px;
@@ -139,6 +140,10 @@ body {
     background-color: var(--input-bg);
     color: var(--text-color);
     font-size: 1em;
+}
+.menu-section textarea {
+    resize: vertical; /* Permet de redimensionner verticalement */
+    min-height: 150px; /* Hauteur minimale pour la textarea */
 }
 .menu-section button {
     margin-top: 10px;
@@ -245,8 +250,12 @@ button {
 }
 button:hover { background: var(--button-primary-hover); }
 
-#explanationBtn, #backToMenuBtn { background: var(--button-secondary-bg); }
-#explanationBtn:hover, #backToMenuBtn:hover { background: var(--button-secondary-hover); }
+#explanationBtn, #backToMenuBtn, #backToMenuFromDissertationBtn, #selectDissertationTopicBtn, #confirmDissertationTopicBtn { /* Ajout des nouveaux boutons */
+    background: var(--button-secondary-bg);
+}
+#explanationBtn:hover, #backToMenuBtn:hover, #backToMenuFromDissertationBtn:hover, #selectDissertationTopicBtn:hover, #confirmDissertationTopicBtn:hover { /* Ajout des nouveaux boutons */
+    background: var(--button-secondary-hover);
+}
 
 .feedback {
     margin-top: 30px;
@@ -262,7 +271,9 @@ button:hover { background: var(--button-primary-hover); }
 .score { margin-top: 35px; font-size: 1.3em; color: var(--phrase-color); }
 #quizContainer { display: none; width: 100%; }
 #statsContainer { display: none; width: 100%; }
-#statsContainer h2 {
+#dissertationContainer { display: none; width: 100%; } /* Nouveau style pour le conteneur de dissertation */
+
+#statsContainer h2, #dissertationContainer h1 { /* Appliquer aux titres de la nouvelle section aussi */
     color: var(--header-color);
     font-size: 2em;
     margin-bottom: 20px;

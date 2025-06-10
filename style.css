@@ -374,7 +374,7 @@ button:hover { background: var(--button-primary-hover); }
     cursor: grab;
     font-size: 1.1em;
     text-align: left;
-    transition: background-color 0.2s, box-shadow 0.2s;
+    transition: background-color 0.2s, box-shadow 0.2s, opacity 0.2s; /* Added opacity transition */
     display: flex;
     align-items: center;
 }
@@ -388,7 +388,7 @@ button:hover { background: var(--button-primary-hover); }
 }
 
 .plan-block.dragging {
-    opacity: 0.6;
+    opacity: 0.4; /* Reduced opacity for dragging element */
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
@@ -423,3 +423,50 @@ button:hover { background: var(--button-primary-hover); }
     border-radius: 5px;
     margin-top: 20px;
 }
+
+/* New styles for progress bars in menu */
+.progress-section {
+    margin-top: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.progress-section label {
+    font-size: 0.9em;
+    color: var(--phrase-color);
+    margin-bottom: 5px;
+    display: block;
+}
+
+.menu-progress-bar {
+    width: 80%; /* Adjust width for menu */
+    margin: 0 auto;
+}
+
+.progress-text {
+    font-size: 0.85em;
+    color: var(--text-color);
+    margin-top: 5px;
+    display: block;
+}
+
+/* Ultimate Challenge Button Style */
+.ultimate-challenge-btn {
+    background-color: #dc3545; /* Red color for ultimate challenge */
+    border: 2px solid #a71d2a;
+    font-weight: bold;
+    text-transform: uppercase;
+    animation: pulse 1.5s infinite;
+}
+
+.ultimate-challenge-btn:hover {
+    background-color: #c82333;
+    animation: none;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 rgba(220, 53, 69, 0.7); }
+    70% { transform: scale(1.03); box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 rgba(220, 53, 69, 0); }
+}
+

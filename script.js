@@ -14,6 +14,7 @@ function showMessageBox(message) {
 const selectionContainer = document.getElementById('selectionContainer');
 const quizContainer = document.getElementById('quizContainer');
 const statsContainer = document.getElementById('statsContainer');
+const dissertationContainer = document.getElementById('dissertationContainer'); // Nouveau : Conteneur de la dissertation
 
 const usernameInput = document.getElementById('usernameInput');
 const createUserBtn = document.getElementById('createUserBtn');
@@ -22,9 +23,11 @@ const profileList = document.getElementById('profileList');
 const activeUserProfileDisplay = document.getElementById('activeUserProfile');
 const currentUserDisplay = document.getElementById('currentUserDisplay'); // En-tête global
 const viewStatsBtn = document.getElementById('viewStatsBtn');
+const deleteUserBtn = document.getElementById('deleteUserBtn'); // Nouveau : Bouton supprimer
 
 const startFiguresBtn = document.getElementById('startFiguresBtn');
 const startTonalitesBtn = document.getElementById('startTonalitesBtn');
+const startDissertationBtn = document.getElementById('startDissertationBtn'); // Nouveau : Bouton Dissertation
 const gameOptionsSection = document.getElementById('gameOptionsSection');
 const gameModeOptions = document.getElementById('gameModeOptions');
 const difficultyOptions = document.getElementById('difficultyOptions');
@@ -55,8 +58,19 @@ const statsForQuizTitle = document.getElementById('statsForQuizTitle');
 const statsHighScore = document.getElementById('statsHighScore');
 const failedQuestionsList = document.getElementById('failedQuestionsList');
 
+// Éléments de la nouvelle section dissertation
+const dissertationTopicDisplay = document.getElementById('dissertationTopicDisplay');
+const selectDissertationTopicBtn = document.getElementById('selectDissertationTopicBtn');
+const dissertationTopicSelection = document.getElementById('dissertationTopicSelection');
+const dissertationSubjectSelect = document.getElementById('dissertationSubjectSelect');
+const confirmDissertationTopicBtn = document.getElementById('confirmDissertationTopicBtn');
+const dissertationTextarea = document.getElementById('dissertationTextarea');
+const analyzeDissertationBtn = document.getElementById('analyzeDissertationBtn');
+const loadingIndicator = document.getElementById('loadingIndicator');
+const dissertationFeedback = document.getElementById('dissertationFeedback');
+const backToMenuFromDissertationBtn = document.getElementById('backToMenuFromDissertationBtn');
+
 // --- VARIABLES GLOBALES DU QUIZ ET DU PROFIL ---
-// Les données des quiz sont maintenant directement intégrées pour éviter les erreurs de chargement.
 let allQuizData = {
     'figures': {
         "title": "🧠 Figures de Style",
@@ -152,6 +166,14 @@ let allQuizData = {
     }
 };
 
+const dissertationTopics = [
+    "La poésie est-elle seulement une affaire de sentiments ?",
+    "Dans quelle mesure le roman est-il une ouverture sur le monde ?",
+    "Le théâtre a-t-il pour seule vocation de divertir ?",
+    "Les personnages de fiction nous aident-ils à mieux comprendre le réel ?"
+];
+
+
 let currentQuizData = null; // Données du quiz actuellement sélectionné
 let questionsForThisQuiz = []; // Questions pour la session de quiz actuelle
 let currentQuestionIndex = 0;
@@ -164,6 +186,9 @@ let selectedGameMode = 'normal';
 let selectedDifficulty = 'any';
 let quizTimer = null; // Pour le mode contre-la-montre
 const TIME_PER_QUESTION_SECONDS = 15; // Temps par question en mode contre-la-montre
+
+let selectedDissertationTopic = ''; // Sujet de dissertation sélectionné
+
 
 // --- PONDÉRATION DES SCORES PAR DIFFICULTÉ ---
 const DIFFICULTY_POINTS = {
@@ -183,6 +208,7 @@ function loadUsers() {
             activeUser = users[activeUserId];
             updateActiveUserDisplay();
             viewStatsBtn.style.display = 'block';
+            deleteUserBtn.style.display = 'block'; // Afficher le bouton de suppression
         }
     }
     renderProfileList();
@@ -211,7 +237,8 @@ function createUser() {
     const newUser = {
         id: username, // Pour la simplicité, l'ID est le nom d'utilisateur
         name: username,
-        quizStats: {} // Stockera les performances de chaque quiz
+        quizStats: {}, // Stockera les performances de chaque quiz
+        dissertationHistory: [] // Historique des dissertations analysées
     };
     users[username] = newUser;
     activeUser = newUser;
@@ -219,6 +246,7 @@ function createUser() {
     updateActiveUserDisplay();
     showMessageBox(`Profil '${username}' créé et sélectionné !`);
     viewStatsBtn.style.display = 'block';
+    deleteUserBtn.style.display = 'block';
     renderProfileList(); // Refresh list to show new user
 }
 
@@ -232,8 +260,29 @@ function loadUser(username) {
     updateActiveUserDisplay();
     showMessageBox(`Profil '${username}' chargé !`);
     viewStatsBtn.style.display = 'block';
+    deleteUserBtn.style.display = 'block';
     renderProfileList(); // Refresh list to highlight selected user if needed (though not currently implemented visually)
 }
+
+function deleteCurrentUser() {
+    if (!activeUser) {
+        showMessageBox("Aucun profil actif à supprimer.");
+        return;
+    }
+    const confirmDelete = confirm(`Êtes-vous sûr de vouloir supprimer le profil de '${activeUser.name}' ? Toutes les statistiques associées seront perdues.`);
+    if (confirmDelete) {
+        delete users[activeUser.id];
+        activeUser = null;
+        saveUsers();
+        updateActiveUserDisplay();
+        showMessageBox("Profil supprimé.");
+        viewStatsBtn.style.display = 'none';
+        deleteUserBtn.style.display = 'none';
+        renderProfileList();
+        showMenu(); // Retour au menu principal après suppression
+    }
+}
+
 
 function updateActiveUserDisplay() {
     if (activeUser) {
@@ -304,8 +353,8 @@ function loadHighScore() {
     }
     const stats = getQuizStatsForCurrentUser(currentQuizData.quizId, selectedGameMode, selectedDifficulty);
     // Utilise la longueur par défaut du quiz pour l'affichage du record si définie, sinon la longueur totale des questions disponibles.
-    const quizPossibleLength = currentQuizData.defaultLength || currentQuizData.questions.filter(q => selectedDifficulty === 'any' || q.difficulty === selectedDifficulty).length;
-    highScoreDisplay.textContent = `🏆 Record (${activeUser.name} - ${selectedGameMode}, ${selectedDifficulty}) : ${stats.highScore} / ${quizPossibleLength}`;
+    const quizPossibleLength = currentQuizData.questions.filter(q => selectedDifficulty === 'any' || q.difficulty === selectedDifficulty).length;
+    highScoreDisplay.textContent = `🏆 Record (${activeUser.name} - ${selectedGameMode}, ${selectedDifficulty}) : ${stats.highScore} / ${currentQuizData.defaultLength || quizPossibleLength}`;
 }
 
 function saveQuizStats(quizId, finalScore, totalQuestionsPlayed, questionResults) {
@@ -341,6 +390,7 @@ function displayOverallStats() {
     }
     selectionContainer.style.display = 'none';
     quizContainer.style.display = 'none';
+    dissertationContainer.style.display = 'none'; // Cacher la section dissertation
     statsContainer.style.display = 'block';
 
     statsUserName.textContent = activeUser.name;
@@ -435,6 +485,7 @@ function showMenu() {
     selectionContainer.style.display = 'block';
     quizContainer.style.display = 'none';
     statsContainer.style.display = 'none';
+    dissertationContainer.style.display = 'none'; // Cacher la section dissertation
     gameOptionsSection.style.display = 'none'; // Hide game options when returning to main menu
     // Reset selected game mode and difficulty to defaults for next selection
     selectedGameMode = 'normal';
@@ -692,6 +743,7 @@ viewQuizStatsBtn.addEventListener('click', () => {
     // Passe en mode affichage des statistiques
     selectionContainer.style.display = 'none';
     quizContainer.style.display = 'none';
+    dissertationContainer.style.display = 'none'; // Cacher la section dissertation
     statsContainer.style.display = 'block';
 
     statsUserName.textContent = activeUser.name;
@@ -765,6 +817,215 @@ startFiguresBtn.addEventListener('click', () => selectQuiz('figures'));
 startTonalitesBtn.addEventListener('click', () => selectQuiz('tonalites'));
 startSelectedQuizBtn.addEventListener('click', startQuiz);
 
+// --- NOUVELLES FONCTIONS POUR LA DISSERTATION ---
+function showDissertationSection() {
+    if (!activeUser) {
+        showMessageBox("Veuillez créer ou charger un profil utilisateur pour rédiger une dissertation.");
+        return;
+    }
+    selectionContainer.style.display = 'none';
+    quizContainer.style.display = 'none';
+    statsContainer.style.display = 'none';
+    dissertationContainer.style.display = 'block';
+
+    // Initialiser le sélecteur de sujet ou afficher le sujet choisi
+    if (selectedDissertationTopic) {
+        dissertationTopicDisplay.textContent = `Sujet actuel : "${selectedDissertationTopic}"`;
+        selectDissertationTopicBtn.style.display = 'block';
+        dissertationTopicSelection.style.display = 'none';
+    } else {
+        dissertationTopicDisplay.textContent = 'Aucun sujet sélectionné.';
+        selectDissertationTopicBtn.style.display = 'none';
+        dissertationTopicSelection.style.display = 'block';
+        // Remplir le sélecteur avec les sujets disponibles
+        dissertationSubjectSelect.innerHTML = '<option value="" disabled selected>Sélectionnez un sujet</option>';
+        dissertationTopics.forEach(topic => {
+            const option = document.createElement('option');
+            option.value = topic;
+            option.textContent = topic;
+            dissertationSubjectSelect.appendChild(option);
+        });
+    }
+
+    dissertationTextarea.value = ''; // Réinitialiser le texte
+    dissertationFeedback.innerHTML = ''; // Réinitialiser le feedback
+    loadingIndicator.style.display = 'none';
+}
+
+startDissertationBtn.addEventListener('click', showDissertationSection);
+
+selectDissertationTopicBtn.addEventListener('click', () => {
+    dissertationTopicDisplay.textContent = 'Aucun sujet sélectionné.';
+    selectDissertationTopicBtn.style.display = 'none';
+    dissertationTopicSelection.style.display = 'block';
+    dissertationSubjectSelect.value = ''; // Réinitialiser la sélection
+});
+
+confirmDissertationTopicBtn.addEventListener('click', () => {
+    const selectedTopic = dissertationSubjectSelect.value;
+    if (selectedTopic) {
+        selectedDissertationTopic = selectedTopic;
+        dissertationTopicDisplay.textContent = `Sujet actuel : "${selectedDissertationTopic}"`;
+        selectDissertationTopicBtn.style.display = 'block';
+        dissertationTopicSelection.style.display = 'none';
+        showMessageBox(`Sujet sélectionné : "${selectedTopic}"`);
+    } else {
+        showMessageBox("Veuillez sélectionner un sujet de dissertation.");
+    }
+});
+
+analyzeDissertationBtn.addEventListener('click', async () => {
+    if (!activeUser) {
+        showMessageBox("Veuillez créer ou charger un profil utilisateur.");
+        return;
+    }
+    if (!selectedDissertationTopic) {
+        showMessageBox("Veuillez d'abord sélectionner un sujet de dissertation.");
+        return;
+    }
+    const dissertationContent = dissertationTextarea.value.trim();
+    if (dissertationContent.length < 50) {
+        showMessageBox("Votre texte est trop court pour une analyse pertinente. Veuillez écrire au moins 50 caractères.");
+        return;
+    }
+
+    loadingIndicator.style.display = 'block';
+    analyzeDissertationBtn.disabled = true;
+    dissertationFeedback.innerHTML = ''; // Clear previous feedback
+
+    try {
+        const feedback = await simulateAIAnalysis(selectedDissertationTopic, dissertationContent);
+        dissertationFeedback.innerHTML = feedback;
+
+        // Enregistrer l'analyse dans l'historique de l'utilisateur
+        activeUser.dissertationHistory.push({
+            topic: selectedDissertationTopic,
+            content: dissertationContent,
+            feedback: feedback,
+            timestamp: new Date().toISOString()
+        });
+        saveUsers();
+
+    } catch (error) {
+        console.error("Erreur lors de l'analyse de la dissertation :", error);
+        dissertationFeedback.innerHTML = `<p class="feedback incorrect">Une erreur est survenue lors de l'analyse. Veuillez réessayer.</p>`;
+    } finally {
+        loadingIndicator.style.display = 'none';
+        analyzeDissertationBtn.disabled = false;
+    }
+});
+
+backToMenuFromDissertationBtn.addEventListener('click', showMenu);
+
+/**
+ * Simule une analyse de dissertation par une IA.
+ * Dans une vraie application, cette fonction ferait un appel `fetch` à un backend
+ * qui, à son tour, communiquerait avec une API de modèle de langage (ex: Gemini API).
+ * @param {string} topic Le sujet de la dissertation.
+ * @param {string} content Le contenu de la dissertation ou du plan.
+ * @returns {Promise<string>} Le feedback de l'IA.
+ */
+async function simulateAIAnalysis(topic, content) {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Basic analysis based on content length and presence of keywords
+    let bilanGeneral = "<h3>Bilan Général :</h3>";
+    let pointsForts = "<h3>Points Forts :</h3><ul>";
+    let ameliorations = "<h3>Axes d'Amélioration :</h3><ul>";
+
+    const wordCount = content.split(/\s+/).filter(word => word.length > 0).length;
+    const paragraphCount = content.split(/\n\s*\n/).filter(p => p.trim().length > 0).length;
+
+    if (wordCount < 100) {
+        bilanGeneral += "<p>Le texte est assez court. Pour une dissertation complète, il faudrait plus de développement.</p>";
+    } else if (wordCount < 300) {
+        bilanGeneral += "<p>Bon début, mais la dissertation pourrait être étoffée pour approfondir les idées.</p>";
+    } else {
+        bilanGeneral += "<p>Le volume de votre texte est satisfaisant. Vous avez bien développé vos idées.</p>";
+    }
+
+    // Analyse de la structure (très simplifiée pour l'exemple)
+    if (paragraphCount < 3) {
+        ameliorations += "<li>Assurez-vous d'avoir une introduction, un développement (en plusieurs parties) et une conclusion distincts.</li>";
+    } else if (paragraphCount < 5) {
+        pointsForts += "<li>La structure commence à prendre forme avec plusieurs paragraphes.</li>";
+        ameliorations += "<li>Pensez à bien organiser votre développement en 2 ou 3 grandes parties, chacune avec ses propres idées et exemples.</li>";
+    } else {
+        pointsForts += "<li>Votre structure semble bien organisée avec un bon découpage en paragraphes.</li>";
+    }
+
+    // Vérification de la problématique (très basique)
+    if (content.toLowerCase().includes("problématique") || content.includes("?")) {
+        pointsForts += "<li>La problématique est présente ou suggérée.</li>";
+    } else {
+        ameliorations += "<li>Pensez à clairement énoncer une problématique en introduction, c'est la pierre angulaire de votre dissertation.</li>";
+    }
+
+    // Mots-clés liés au sujet
+    const topicKeywords = topic.toLowerCase().split(' ').filter(w => w.length > 3);
+    let topicMentions = 0;
+    topicKeywords.forEach(keyword => {
+        if (content.toLowerCase().includes(keyword)) {
+            topicMentions++;
+        }
+    });
+
+    if (topicMentions >= Math.ceil(topicKeywords.length / 2)) {
+        pointsForts += "<li>Votre texte semble bien ancré dans le sujet choisi.</li>";
+    } else {
+        ameliorations += "<li>Vérifiez que vous répondez précisément au sujet. Assurez-vous d'utiliser les termes clés du sujet tout au long de votre argumentation.</li>";
+    }
+
+    // Vérification de l'orthographe/grammaire (très basique - en réalité, nécessiterait une API de correction)
+    if (content.length > 100) { // Seulement si le texte est assez long
+        const simpleErrors = ["fautes", "grammaire", "orthographe"]; // Placeholder for actual error detection
+        let foundErrors = false;
+        for (const errorWord of simpleErrors) {
+            if (content.toLowerCase().includes(errorWord)) { // Simulate a simple check
+                // This part is for demonstration; a real AI would give precise error locations.
+                // ameliorations += `<li>Vérifiez l'orthographe et la grammaire.</li>`;
+                // foundErrors = true;
+                // break;
+            }
+        }
+        // if (!foundErrors) {
+        //     pointsForts += "<li>Votre texte semble contenir peu d'erreurs de base (orthographe, grammaire).</li>";
+        // }
+         // Simuler un message pour l'orthographe/grammaire sans vraiment la corriger
+        ameliorations += "<li>Relisez attentivement votre texte pour corriger les éventuelles fautes d'orthographe, de grammaire et de ponctuation.</li>";
+
+    }
+
+    // Analyse du style (très basique)
+    if (content.split('.').length < 5) {
+        ameliorations += "<li>Variez la longueur de vos phrases pour rendre le texte plus dynamique.</li>";
+    } else {
+        pointsForts += "<li>Votre style est clair et les phrases sont bien construites.</li>";
+    }
+
+    pointsForts += "</ul>";
+    ameliorations += "</ul>";
+
+    // Si aucun point fort ou amélioration n'a été trouvé, ajouter un message par défaut
+    if (pointsForts === "<h3>Points Forts :</h3><ul></ul>") {
+        pointsForts += "<li>Continuez à travailler la clarté de vos idées et la pertinence de vos exemples.</li>";
+    }
+    if (ameliorations === "<h3>Axes d'Amélioration :</h3><ul></ul>") {
+        ameliorations += "<li>Excellent travail ! Pour aller plus loin, cherchez à affiner encore votre argumentation et votre style.</li>";
+    }
+
+
+    const finalFeedback = `
+        ${bilanGeneral}
+        ${pointsForts}
+        ${ameliorations}
+        <p><em>Ce feedback est une simulation. Une véritable IA fournirait une analyse plus détaillée et contextuelle.</em></p>
+    `;
+
+    return finalFeedback;
+}
+
 
 // --- Initialisation de la page ---
 async function initialize() {
@@ -785,6 +1046,7 @@ loadUserBtn.addEventListener('click', () => {
     }
 });
 viewStatsBtn.addEventListener('click', displayOverallStats);
+deleteUserBtn.addEventListener('click', deleteCurrentUser); // Ajout de l'écouteur pour le bouton de suppression
 
 
 initialize();

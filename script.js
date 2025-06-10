@@ -183,12 +183,25 @@ const dissertationTopics = [
     "Les personnages de fiction nous aident-ils à mieux comprendre le réel ?"
 ];
 
+// Nouveaux éléments du plan de dissertation pour augmenter la difficulté
 const dissertationPlanElements = [
-    "Introduction : Accroche + Présentation du texte + Problématique + Annonce du Plan",
-    "Développement : Première partie (axe clair, citations, procédés, analyse)",
-    "Développement : Deuxième partie (axe clair, citations, procédés, analyse)",
-    "Développement : Troisième partie (axe clair, citations, procédés, analyse)", // Optional part
-    "Conclusion : Bilan + Ouverture pertinente"
+    "Accroche",
+    "Présentation du texte + Auteur",
+    "Problématique",
+    "Annonce du Plan",
+    "Première partie : Axe clair + Citations + Procédés + Analyse",
+    "Sous-partie 1.1",
+    "Sous-partie 1.2",
+    "Transition vers la deuxième partie",
+    "Deuxième partie : Axe clair + Citations + Procédés + Analyse",
+    "Sous-partie 2.1",
+    "Sous-partie 2.2",
+    "Transition vers la troisième partie",
+    "Troisième partie : Axe clair + Citations + Procédés + Analyse",
+    "Sous-partie 3.1",
+    "Sous-partie 3.2",
+    "Conclusion : Bilan",
+    "Conclusion : Ouverture"
 ];
 
 

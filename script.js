@@ -190,16 +190,16 @@ const dissertationPlanElements = [
     "Problématique",
     "Annonce du Plan",
     "Première partie : Axe clair + Citations + Procédés + Analyse",
-    "Sous-partie 1.1",
-    "Sous-partie 1.2",
+    "Sous-partie 1.1 (Argument / Exemple)",
+    "Sous-partie 1.2 (Argument / Exemple)",
     "Transition vers la deuxième partie",
     "Deuxième partie : Axe clair + Citations + Procédés + Analyse",
-    "Sous-partie 2.1",
-    "Sous-partie 2.2",
+    "Sous-partie 2.1 (Argument / Exemple)",
+    "Sous-partie 2.2 (Argument / Exemple)",
     "Transition vers la troisième partie",
     "Troisième partie : Axe clair + Citations + Procédés + Analyse",
-    "Sous-partie 3.1",
-    "Sous-partie 3.2",
+    "Sous-partie 3.1 (Argument / Exemple)",
+    "Sous-partie 3.2 (Argument / Exemple)",
     "Conclusion : Bilan",
     "Conclusion : Ouverture"
 ];
@@ -1000,7 +1000,7 @@ function generateNewPlan() {
     correctPlanOrder = dissertationPlanElements; // Store the correct order
 
     sortablePlanBlocks.innerHTML = '';
-    shuffledElements.forEach((text, index) => {
+    shuffledElements.forEach((text) => { // Removed index as it's not strictly necessary for unique data-text
         const block = document.createElement('div');
         block.classList.add('plan-block');
         block.setAttribute('draggable', 'true');
@@ -1013,7 +1013,6 @@ function generateNewPlan() {
 }
 
 function addDragAndDropListeners() {
-    const blocks = sortablePlanBlocks.querySelectorAll('.plan-block');
     let draggedItem = null;
     const placeholder = document.createElement('div');
     placeholder.classList.add('placeholder');
@@ -1034,65 +1033,64 @@ function addDragAndDropListeners() {
         }, { offset: -Infinity }).element;
     }
 
-    blocks.forEach(block => {
-        block.addEventListener('dragstart', (e) => {
-            draggedItem = block;
-            e.dataTransfer.effectAllowed = 'move';
-            // Set a timeout to allow the browser to capture the initial state before hiding
-            setTimeout(() => {
-                block.style.display = 'none'; // Hide the original element
-                // Insert placeholder at the original position of the dragged item
-                sortablePlanBlocks.insertBefore(placeholder, block.nextSibling);
-            }, 0);
-        });
-
-        block.addEventListener('dragend', () => {
-            // Cleanup: remove placeholder and show the dragged item in its new position
-            if (placeholder.parentNode) {
-                placeholder.parentNode.removeChild(placeholder);
-            }
-            if (draggedItem) {
-                draggedItem.style.display = 'flex'; // Show the dragged item
-            }
+    sortablePlanBlocks.addEventListener('dragstart', (e) => {
+        draggedItem = e.target;
+        if (!draggedItem.classList.contains('plan-block')) { // Ensure we are dragging a plan-block
             draggedItem = null;
-        });
+            return;
+        }
+        e.dataTransfer.effectAllowed = 'move';
+        // Set a timeout to allow the browser to capture the initial state before changing display
+        setTimeout(() => {
+            draggedItem.classList.add('dragging'); // Add dragging class to show reduced opacity
+            // Insert placeholder at the original position of the dragged item
+            sortablePlanBlocks.insertBefore(placeholder, draggedItem);
+        }, 0);
+    });
+
+    sortablePlanBlocks.addEventListener('dragend', () => {
+        // Cleanup: remove placeholder and remove dragging class
+        if (placeholder.parentNode) {
+            placeholder.parentNode.removeChild(placeholder);
+        }
+        if (draggedItem) {
+            draggedItem.classList.remove('dragging');
+        }
+        draggedItem = null;
     });
 
     sortablePlanBlocks.addEventListener('dragover', (e) => {
         e.preventDefault(); // Crucial: allow drop
         if (!draggedItem) return; // Only process if an item is being dragged
 
-        sortablePlanBlocks.classList.add('drag-over');
+        // Remove placeholder from its current position before inserting it again
+        if (placeholder.parentNode) {
+            placeholder.parentNode.removeChild(placeholder);
+        }
 
         const afterElement = getDragAfterElement(sortablePlanBlocks, e.clientY);
         if (afterElement == null) {
             // If dropping at the end, append the placeholder
-            if (sortablePlanBlocks.lastChild !== placeholder) {
-                sortablePlanBlocks.appendChild(placeholder);
-            }
+            sortablePlanBlocks.appendChild(placeholder);
         } else {
             // Otherwise, insert placeholder before the target element
-            if (afterElement.previousSibling !== placeholder) {
-                sortablePlanBlocks.insertBefore(placeholder, afterElement);
+            sortablePlanBlocks.insertBefore(placeholder, afterElement);
+        }
+    });
+
+    sortablePlanBlocks.addEventListener('dragleave', (e) => {
+        // Check if the drag is leaving the container or just moving over a child
+        if (!sortablePlanBlocks.contains(e.relatedTarget)) {
+            if (placeholder.parentNode) {
+                placeholder.parentNode.removeChild(placeholder);
             }
         }
     });
 
-    sortablePlanBlocks.addEventListener('dragleave', () => {
-        sortablePlanBlocks.classList.remove('drag-over');
-        // If the placeholder is still in the DOM and drag leaves the container, remove it
-        // This handles cases where drag ends outside the valid drop target
-        // if (placeholder.parentNode) {
-        //     placeholder.parentNode.removeChild(placeholder);
-        // }
-    });
-
     sortablePlanBlocks.addEventListener('drop', () => {
-        sortablePlanBlocks.classList.remove('drag-over');
         if (draggedItem && placeholder.parentNode) {
             // Replace the placeholder with the actual dragged item
             placeholder.parentNode.replaceChild(draggedItem, placeholder);
-            draggedItem.style.display = 'flex'; // Ensure it's visible after dropping
         }
     });
 }
@@ -1105,12 +1103,17 @@ function checkPlanOrder() {
     const currentOrderTexts = currentOrderElements.map(block => block.dataset.text.trim());
 
     let isCorrect = true;
-    for (let i = 0; i < correctPlanOrder.length; i++) {
-        if (currentOrderTexts[i] !== correctPlanOrder[i]) {
-            isCorrect = false;
-            break;
+    if (currentOrderTexts.length !== correctPlanOrder.length) {
+        isCorrect = false; // Incorrect number of elements
+    } else {
+        for (let i = 0; i < correctPlanOrder.length; i++) {
+            if (currentOrderTexts[i] !== correctPlanOrder[i]) {
+                isCorrect = false;
+                break;
+            }
         }
     }
+
 
     if (isCorrect) {
         planFeedback.textContent = "✅ Félicitations ! Le plan est parfait !";

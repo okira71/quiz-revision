@@ -269,18 +269,33 @@ function deleteCurrentUser() {
         showMessageBox("Aucun profil actif à supprimer.");
         return;
     }
-    const confirmDelete = confirm(`Êtes-vous sûr de vouloir supprimer le profil de '${activeUser.name}' ? Toutes les statistiques associées seront perdues.`);
-    if (confirmDelete) {
+    // Utilisez showMessageBox pour une confirmation sans bloquer le thread
+    showMessageBox(`Êtes-vous sûr de vouloir supprimer le profil de '${activeUser.name}' ? Toutes les statistiques associées seront perdues.<br><button id="confirmDeleteUserBtn" class="message-box-btn">Oui</button><button id="cancelDeleteUserBtn" class="message-box-btn">Non</button>`);
+
+    document.getElementById('confirmDeleteUserBtn').addEventListener('click', () => {
         delete users[activeUser.id];
         activeUser = null;
         saveUsers();
         updateActiveUserDisplay();
-        showMessageBox("Profil supprimé.");
+        showMessageBox("Profil supprimé."); // Message de confirmation après suppression
         viewStatsBtn.style.display = 'none';
         deleteUserBtn.style.display = 'none';
         renderProfileList();
         showMenu(); // Retour au menu principal après suppression
-    }
+        // Supprimez la messageBox après confirmation
+        const messageBox = document.querySelector('.message-box');
+        if (messageBox) {
+            document.body.removeChild(messageBox);
+        }
+    });
+
+    document.getElementById('cancelDeleteUserBtn').addEventListener('click', () => {
+        // Supprimez la messageBox si l'utilisateur annule
+        const messageBox = document.querySelector('.message-box');
+        if (messageBox) {
+            document.body.removeChild(messageBox);
+        }
+    });
 }
 
 
@@ -894,14 +909,36 @@ analyzeDissertationBtn.addEventListener('click', async () => {
     dissertationFeedback.innerHTML = ''; // Clear previous feedback
 
     try {
-        const feedback = await simulateAIAnalysis(selectedDissertationTopic, dissertationContent);
-        dissertationFeedback.innerHTML = feedback;
+        const feedback = await callAIAnalysisAPI(selectedDissertationTopic, dissertationContent); // Appel à la vraie fonction
+        
+        // Afficher le feedback structuré de l'IA
+        let feedbackHtml = `<h3>Bilan de l'IA :</h3><p>${feedback.generalSummary}</p>`;
+        
+        if (feedback.strengths && feedback.strengths.length > 0) {
+            feedbackHtml += `<h3>Points Forts :</h3><ul>`;
+            feedback.strengths.forEach(point => {
+                feedbackHtml += `<li>✅ ${point}</li>`;
+            });
+            feedbackHtml += `</ul>`;
+        }
+
+        if (feedback.improvements && feedback.improvements.length > 0) {
+            feedbackHtml += `<h3>Axes d'Amélioration :</h3><ul>`;
+            feedback.improvements.forEach(point => {
+                feedbackHtml += `<li>⚠️ ${point}</li>`;
+            });
+            feedbackHtml += `</ul>`;
+        }
+        
+        feedbackHtml += `<p><em>Ce feedback est une simulation de la structure de réponse d'une IA. Une véritable IA fournirait une analyse plus détaillée et contextuelle après intégration d'un backend.</em></p>`;
+
+        dissertationFeedback.innerHTML = feedbackHtml;
 
         // Enregistrer l'analyse dans l'historique de l'utilisateur
         activeUser.dissertationHistory.push({
             topic: selectedDissertationTopic,
             content: dissertationContent,
-            feedback: feedback,
+            feedback: feedbackHtml, // Sauvegarder le HTML généré pour affichage futur
             timestamp: new Date().toISOString()
         });
         saveUsers();
@@ -918,112 +955,110 @@ analyzeDissertationBtn.addEventListener('click', async () => {
 backToMenuFromDissertationBtn.addEventListener('click', showMenu);
 
 /**
- * Simule une analyse de dissertation par une IA.
- * Dans une vraie application, cette fonction ferait un appel `fetch` à un backend
- * qui, à son tour, communiquerait avec une API de modèle de langage (ex: Gemini API).
+ * Simule l'appel à une API backend pour l'analyse de dissertation par une IA.
+ * DANS UNE VRAIE APPLICATION, CELA SERAIT UN APPEL `fetch` VERS UN BACKEND SÉCURISÉ,
+ * ET NON UNE LOGIQUE DIRECTE D'ANALYSE CÔTÉ CLIENT AVEC UNE CLÉ API EXPOSÉE.
+ * Le backend interagirait ensuite avec une API de modèle de langage (ex: Gemini API).
+ *
  * @param {string} topic Le sujet de la dissertation.
  * @param {string} content Le contenu de la dissertation ou du plan.
- * @returns {Promise<string>} Le feedback de l'IA.
+ * @returns {Promise<object>} Le feedback de l'IA au format JSON.
  */
-async function simulateAIAnalysis(topic, content) {
-    // Simulate API call delay
+async function callAIAnalysisAPI(topic, content) {
+    // --- DÉBUT DE LA SIMULATION (À REMPLACER PAR UN VRAI APPEL API) ---
+    // Simuler le délai de l'appel API
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Basic analysis based on content length and presence of keywords
-    let bilanGeneral = "<h3>Bilan Général :</h3>";
-    let pointsForts = "<h3>Points Forts :</h3><ul>";
-    let ameliorations = "<h3>Axes d'Amélioration :</h3><ul>";
+    // Définir une réponse structurée simulée
+    const simulatedResponse = {
+        generalSummary: "Votre dissertation montre un bon potentiel, mais nécessite une structuration plus rigoureuse et une meilleure utilisation des exemples.",
+        strengths: [],
+        improvements: []
+    };
 
     const wordCount = content.split(/\s+/).filter(word => word.length > 0).length;
     const paragraphCount = content.split(/\n\s*\n/).filter(p => p.trim().length > 0).length;
 
-    if (wordCount < 100) {
-        bilanGeneral += "<p>Le texte est assez court. Pour une dissertation complète, il faudrait plus de développement.</p>";
-    } else if (wordCount < 300) {
-        bilanGeneral += "<p>Bon début, mais la dissertation pourrait être étoffée pour approfondir les idées.</p>";
+    // Analyse de la longueur
+    if (wordCount < 150) {
+        simulatedResponse.improvements.push(`Le texte est un peu court (${wordCount} mots). Pour une dissertation complète, visez au moins 500-800 mots afin d'approfondir vos arguments.`);
+    } else if (wordCount < 500) {
+        simulatedResponse.strengths.push(`Le volume de votre texte (${wordCount} mots) est un bon début.`);
+        simulatedResponse.improvements.push(`La dissertation pourrait être davantage étoffée pour un traitement exhaustif du sujet.`);
     } else {
-        bilanGeneral += "<p>Le volume de votre texte est satisfaisant. Vous avez bien développé vos idées.</p>";
+        simulatedResponse.strengths.push(`Excellent volume de texte (${wordCount} mots), vous avez bien développé vos idées.`);
     }
 
-    // Analyse de la structure (très simplifiée pour l'exemple)
+    // Analyse de la structure
     if (paragraphCount < 3) {
-        ameliorations += "<li>Assurez-vous d'avoir une introduction, un développement (en plusieurs parties) et une conclusion distincts.</li>";
+        simulatedResponse.improvements.push("Assurez-vous d'avoir une introduction, un développement (en plusieurs parties) et une conclusion clairement distincts.");
     } else if (paragraphCount < 5) {
-        pointsForts += "<li>La structure commence à prendre forme avec plusieurs paragraphes.</li>";
-        ameliorations += "<li>Pensez à bien organiser votre développement en 2 ou 3 grandes parties, chacune avec ses propres idées et exemples.</li>";
+        simulatedResponse.strengths.push("La structure de votre texte est en train de prendre forme.");
+        simulatedResponse.improvements.push("Pensez à structurer votre développement en 2 ou 3 grandes parties, chacune avec un argument principal et des sous-arguments.");
     } else {
-        pointsForts += "<li>Votre structure semble bien organisée avec un bon découpage en paragraphes.</li>";
+        simulatedResponse.strengths.push("Votre structure semble bien organisée avec un bon découpage en paragraphes.");
     }
 
-    // Vérification de la problématique (très basique)
+    // Vérification de la problématique
     if (content.toLowerCase().includes("problématique") || content.includes("?")) {
-        pointsForts += "<li>La problématique est présente ou suggérée.</li>";
+        simulatedResponse.strengths.push("La problématique est présente ou clairement suggérée en introduction.");
     } else {
-        ameliorations += "<li>Pensez à clairement énoncer une problématique en introduction, c'est la pierre angulaire de votre dissertation.</li>";
+        simulatedResponse.improvements.push("Pensez à clairement énoncer une problématique forte et pertinente en introduction, c'est le fil conducteur de votre dissertation.");
     }
 
-    // Mots-clés liés au sujet
+    // Pertinence au sujet
     const topicKeywords = topic.toLowerCase().split(' ').filter(w => w.length > 3);
-    let topicMentions = 0;
+    let relevantKeywordsFound = 0;
     topicKeywords.forEach(keyword => {
         if (content.toLowerCase().includes(keyword)) {
-            topicMentions++;
+            relevantKeywordsFound++;
         }
     });
-
-    if (topicMentions >= Math.ceil(topicKeywords.length / 2)) {
-        pointsForts += "<li>Votre texte semble bien ancré dans le sujet choisi.</li>";
+    if (relevantKeywordsFound >= Math.ceil(topicKeywords.length / 2)) {
+        simulatedResponse.strengths.push("Votre texte est bien ancré dans le sujet. Vous utilisez les termes clés de manière appropriée.");
     } else {
-        ameliorations += "<li>Vérifiez que vous répondez précisément au sujet. Assurez-vous d'utiliser les termes clés du sujet tout au long de votre argumentation.</li>";
+        simulatedResponse.improvements.push("Vérifiez que vous répondez précisément au sujet. Assurez-vous d'utiliser les termes clés du sujet tout au long de votre argumentation pour éviter le hors-sujet.");
     }
 
-    // Vérification de l'orthographe/grammaire (très basique - en réalité, nécessiterait une API de correction)
-    if (content.length > 100) { // Seulement si le texte est assez long
-        const simpleErrors = ["fautes", "grammaire", "orthographe"]; // Placeholder for actual error detection
-        let foundErrors = false;
-        for (const errorWord of simpleErrors) {
-            if (content.toLowerCase().includes(errorWord)) { // Simulate a simple check
-                // This part is for demonstration; a real AI would give precise error locations.
-                // ameliorations += `<li>Vérifiez l'orthographe et la grammaire.</li>`;
-                // foundErrors = true;
-                // break;
-            }
+    // Placeholders pour une analyse réelle (orthographe, grammaire, style)
+    simulatedResponse.improvements.push("**Orthographe & Grammaire :** Relisez attentivement votre texte. Une IA réelle pourrait identifier et suggérer des corrections pour les fautes d'orthographe, de grammaire et de ponctuation.");
+    simulatedResponse.improvements.push("**Style & Fluidité :** Variez la longueur et la structure de vos phrases pour un style plus dynamique. Évitez les répétitions et utilisez un vocabulaire plus précis. Une IA pourrait détecter les lourdeurs de style.");
+    simulatedResponse.improvements.push("**Exemples & Arguments :** Chaque argument devrait être illustré par des exemples précis et analysés. Assurez-vous que vos exemples sont pertinents et expliqués en relation avec votre argument.");
+    simulatedResponse.improvements.push("**Cohérence & Progression :** Le fil de votre pensée doit être clair et logique. Chaque paragraphe doit s'enchaîner naturellement et faire progresser votre argumentation.");
+
+
+    return simulatedResponse;
+    // --- FIN DE LA SIMULATION ---
+
+
+    /*
+    // --- DÉBUT DU VRAI APPEL API (EXEMPLE) ---
+    // ATTENTION : L'URL CI-DESSOUS EST UN EXEMPLE. VOUS DEVRIEZ LA REMPLACER PAR L'URL DE VOTRE BACKEND.
+    // L'API_KEY NE DOIT JAMAIS ÊTRE EXPOSÉE CÔTÉ CLIENT. ELLE DOIT RESTER SUR VOTRE BACKEND.
+    const apiUrl = '/api/analyze-dissertation'; // Exemple d'endpoint sur votre backend
+
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                // N'ajoutez PAS votre clé API ici. Le backend s'en chargera.
+            },
+            body: JSON.stringify({ topic, content })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Erreur HTTP: ${response.status}`);
         }
-        // if (!foundErrors) {
-        //     pointsForts += "<li>Votre texte semble contenir peu d'erreurs de base (orthographe, grammaire).</li>";
-        // }
-         // Simuler un message pour l'orthographe/grammaire sans vraiment la corriger
-        ameliorations += "<li>Relisez attentivement votre texte pour corriger les éventuelles fautes d'orthographe, de grammaire et de ponctuation.</li>";
 
+        const result = await response.json();
+        return result; // L'IA renverrait un objet JSON avec l'analyse
+    } catch (error) {
+        console.error("Erreur lors de l'appel à l'API d'analyse de dissertation :", error);
+        throw error;
     }
-
-    // Analyse du style (très basique)
-    if (content.split('.').length < 5) {
-        ameliorations += "<li>Variez la longueur de vos phrases pour rendre le texte plus dynamique.</li>";
-    } else {
-        pointsForts += "<li>Votre style est clair et les phrases sont bien construites.</li>";
-    }
-
-    pointsForts += "</ul>";
-    ameliorations += "</ul>";
-
-    // Si aucun point fort ou amélioration n'a été trouvé, ajouter un message par défaut
-    if (pointsForts === "<h3>Points Forts :</h3><ul></ul>") {
-        pointsForts += "<li>Continuez à travailler la clarté de vos idées et la pertinence de vos exemples.</li>";
-    }
-    if (ameliorations === "<h3>Axes d'Amélioration :</h3><ul></ul>") {
-        ameliorations += "<li>Excellent travail ! Pour aller plus loin, cherchez à affiner encore votre argumentation et votre style.</li>";
-    }
-
-
-    const finalFeedback = `
-        ${bilanGeneral}
-        ${pointsForts}
-        ${ameliorations}
-        <p><em>Ce feedback est une simulation. Une véritable IA fournirait une analyse plus détaillée et contextuelle.</em></p>
-    `;
-
-    return finalFeedback;
+    // --- FIN DU VRAI APPEL API (EXEMPLE) ---
+    */
 }
 
 

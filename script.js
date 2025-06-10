@@ -168,7 +168,7 @@ let allQuizData = {
             { "prompt": "Quelque chose d’étrange ou de surnaturel arrive dans un monde réaliste, créant une hésitation.", "answer": "Tonalité fantastique", "explication": "Il y a une hésitation entre rêve et réalité, un vocabulaire du doute (peut-être, on dirait que…) et une ambiance inquiétante.", "difficulty": "medium" },
             { "prompt": "Le texte présente un monde magique, où le surnaturel est accepté naturellement.", "answer": "Tonalité merveilleuse", "explication": "On trouve des éléments magiques (fées, dragons…) dans un vocabulaire féérique et imaginaire, sans aucun doute chez les personnages.", "difficulty": "easy" },
             { "prompt": "Tonalité qui met en scène des situations extrêmes et des personnages aux passions violentes.", "answer": "Dramatique", "difficulty": "hard", "explication": "La tonalité dramatique est caractéristique des œuvres où les événements s'enchaînent de manière tendue, aboutissant souvent à une crise ou un dénouement intense." },
-            { "prompt": "Le texte exprime la joie, l'enthousiasme, la célébration.", "answer": "Tonalité épidictique (louange)", "difficulty": "medium", "explication": "Caractérisée par un vocabulaire mélioratif, des exclamations et un ton solennel, elle vise à louer ou blâmer." سپس", "difficulty": "medium", "explication": "Utilise un vocabulaire abstrait, des questions rhétoriques, et une argumentation logique pour provoquer la pensée." },
+            { "prompt": "Le texte exprime la joie, l'enthousiasme, la célébration.", "answer": "Tonalité épidictique (louange)", "difficulty": "medium", "explication": "Caractérisée par un vocabulaire mélioratif, des exclamations et un ton solennel, elle vise à louer ou blâmer." },
             { "prompt": "Le texte invite à la méditation, à la réflexion sur la condition humaine.", "answer": "Tonalité philosophique", "difficulty": "medium", "explication": "Utilise un vocabulaire abstrait, des questions rhétoriques, et une argumentation logique pour provoquer la pensée." },
             { "prompt": "Le texte vise à émouvoir, à provoquer des sentiments de pitié ou d'horreur.", "answer": "Tonalité pathétique", "difficulty": "easy", "explication": "Elle se manifeste par un vocabulaire de la souffrance, des larmes, et des exclamations." },
             { "prompt": "Le texte relate des événements passés, souvent avec une visée historique ou documentaire.", "answer": "Tonalité narrative", "difficulty": "easy", "explication": "Caractérisée par l'emploi du passé simple, de marqueurs temporels, et une succession d'actions." }
@@ -991,7 +991,7 @@ function generateNewPlan() {
         const block = document.createElement('div');
         block.classList.add('plan-block');
         block.setAttribute('draggable', 'true');
-        block.dataset.index = index; // Store initial index for no particular reason other than identification
+        block.dataset.text = text; // Store the original text to compare later
         block.innerHTML = `<span class="plan-block-handle">☰</span> ${text}`;
         sortablePlanBlocks.appendChild(block);
     });
@@ -1002,6 +1002,9 @@ function generateNewPlan() {
 function addDragAndDropListeners() {
     const blocks = sortablePlanBlocks.querySelectorAll('.plan-block');
     let draggedItem = null;
+    const placeholder = document.createElement('div');
+    placeholder.classList.add('placeholder');
+    placeholder.style.height = '50px'; // Initial height, can be adjusted dynamically
 
     // Helper function to get the draggable element before which to insert
     function getDragAfterElement(container, y) {
@@ -1021,38 +1024,63 @@ function addDragAndDropListeners() {
     blocks.forEach(block => {
         block.addEventListener('dragstart', (e) => {
             draggedItem = block;
-            e.dataTransfer.effectAllowed = 'move'; // Explicitly set effect allowed
+            e.dataTransfer.effectAllowed = 'move';
+            // Set a timeout to allow the browser to capture the initial state before hiding
             setTimeout(() => {
-                block.classList.add('dragging');
+                block.style.display = 'none'; // Hide the original element
+                // Insert placeholder at the original position of the dragged item
+                sortablePlanBlocks.insertBefore(placeholder, block.nextSibling);
             }, 0);
         });
 
         block.addEventListener('dragend', () => {
-            draggedItem.classList.remove('dragging');
+            // Cleanup: remove placeholder and show the dragged item in its new position
+            if (placeholder.parentNode) {
+                placeholder.parentNode.removeChild(placeholder);
+            }
+            if (draggedItem) {
+                draggedItem.style.display = 'flex'; // Show the dragged item
+            }
             draggedItem = null;
         });
     });
 
     sortablePlanBlocks.addEventListener('dragover', (e) => {
         e.preventDefault(); // Crucial: allow drop
-        sortablePlanBlocks.classList.add('drag-over'); // Visual feedback for container
+        if (!draggedItem) return; // Only process if an item is being dragged
 
-        if (draggedItem) { // Only proceed if an item is being dragged
-            const afterElement = getDragAfterElement(sortablePlanBlocks, e.clientY);
-            if (afterElement == null) {
-                sortablePlanBlocks.appendChild(draggedItem);
-            } else {
-                sortablePlanBlocks.insertBefore(draggedItem, afterElement);
+        sortablePlanBlocks.classList.add('drag-over');
+
+        const afterElement = getDragAfterElement(sortablePlanBlocks, e.clientY);
+        if (afterElement == null) {
+            // If dropping at the end, append the placeholder
+            if (sortablePlanBlocks.lastChild !== placeholder) {
+                sortablePlanBlocks.appendChild(placeholder);
+            }
+        } else {
+            // Otherwise, insert placeholder before the target element
+            if (afterElement.previousSibling !== placeholder) {
+                sortablePlanBlocks.insertBefore(placeholder, afterElement);
             }
         }
     });
 
     sortablePlanBlocks.addEventListener('dragleave', () => {
         sortablePlanBlocks.classList.remove('drag-over');
+        // If the placeholder is still in the DOM and drag leaves the container, remove it
+        // This handles cases where drag ends outside the valid drop target
+        // if (placeholder.parentNode) {
+        //     placeholder.parentNode.removeChild(placeholder);
+        // }
     });
 
     sortablePlanBlocks.addEventListener('drop', () => {
         sortablePlanBlocks.classList.remove('drag-over');
+        if (draggedItem && placeholder.parentNode) {
+            // Replace the placeholder with the actual dragged item
+            placeholder.parentNode.replaceChild(draggedItem, placeholder);
+            draggedItem.style.display = 'flex'; // Ensure it's visible after dropping
+        }
     });
 }
 
@@ -1060,7 +1088,8 @@ checkPlanBtn.addEventListener('click', checkPlanOrder);
 
 function checkPlanOrder() {
     const currentOrderElements = Array.from(sortablePlanBlocks.children);
-    const currentOrderTexts = currentOrderElements.map(block => block.textContent.replace('☰ ', '').trim());
+    // Use the dataset.text for comparison as textContent might include the handle
+    const currentOrderTexts = currentOrderElements.map(block => block.dataset.text.trim());
 
     let isCorrect = true;
     for (let i = 0; i < correctPlanOrder.length; i++) {

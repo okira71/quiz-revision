@@ -256,28 +256,16 @@ function loadUsers() {
     const storedUsers = localStorage.getItem('quizUsers');
     if (storedUsers) {
         users = JSON.parse(storedUsers);
-        // Convert overallCompletedQuestions arrays back to Sets and ensure full structure
+        // Convert overallCompletedQuestions arrays back to Sets
         for (const userId in users) {
-            if (!users[userId].quizStats) {
-                users[userId].quizStats = {};
-            }
-            // Ensure all known quiz IDs have their basic stats initialized
-            ['figures', 'tonalites', 'dissertationPlan', 'ultimate-challenge'].forEach(quizId => {
-                if (!users[userId].quizStats[quizId]) {
-                    users[userId].quizStats[quizId] = {
-                        overallCompletedQuestions: new Set(),
-                        isCompleted: false, // For dissertationPlan
-                        highScore: 0 // For ultimate-challenge
-                    };
-                } else if (users[userId].quizStats[quizId].overallCompletedQuestions && !(users[userId].quizStats[quizId].overallCompletedQuestions instanceof Set)) {
+            for (const quizId in users[userId].quizStats) {
+                if (users[userId].quizStats[quizId].overallCompletedQuestions) {
                     users[userId].quizStats[quizId].overallCompletedQuestions = new Set(users[userId].quizStats[quizId].overallCompletedQuestions);
-                } else if (!users[userId].quizStats[quizId].overallCompletedQuestions) {
+                } else {
+                    // Initialize if missing (e.g., from older user data)
                     users[userId].quizStats[quizId].overallCompletedQuestions = new Set();
                 }
-                // Ensure isCompleted and highScore defaults if missing
-                if (typeof users[userId].quizStats[quizId].isCompleted === 'undefined') users[userId].quizStats[quizId].isCompleted = false;
-                if (typeof users[userId].quizStats[quizId].highScore === 'undefined') users[userId].quizStats[quizId].highScore = 0;
-            });
+            }
         }
         const activeUserId = localStorage.getItem('activeQuizUser');
         if (activeUserId && users[activeUserId]) {
@@ -309,34 +297,28 @@ function saveUsers() {
 }
 
 function unlockUltimateChallenge() {
-    console.log("Attempting to unlock Ultimate Challenge with secret code.");
     if (activeUser) {
-        // Force completion for all quizzes
+        // Unlock all questions for Figures and Tonalites
         allQuizData['figures'].questions.forEach(q => {
             activeUser.quizStats['figures'].overallCompletedQuestions.add(stringToHash(q.prompt));
         });
         allQuizData['tonalites'].questions.forEach(q => {
             activeUser.quizStats['tonalites'].overallCompletedQuestions.add(stringToHash(q.prompt));
         });
+        // Complete dissertation plan
         activeUser.quizStats['dissertationPlan'].isCompleted = true;
-        
-        // Ensure ultimate challenge high score is initialized
-        if (typeof activeUser.quizStats['ultimate-challenge'].highScore === 'undefined') {
-             activeUser.quizStats['ultimate-challenge'].highScore = 0;
+        // Set a high score for ultimate challenge if not already set (or set to 0 for a true "new" score)
+        if (activeUser.quizStats['ultimate-challenge'].highScore === 0) {
+             activeUser.quizStats['ultimate-challenge'].highScore = 0; // Or some initial value like 1
         }
-
         saveUsers();
         updateProgressBars();
         showMessageBox("🎉 Code secret activé ! Le Défi Ultime est débloqué !");
-        console.log("Ultimate Challenge unlocked. User stats after unlock:", activeUser.quizStats);
-    } else {
-        console.log("No active user to unlock Ultimate Challenge for.");
     }
 }
 
 
 function createUser() {
-    console.log("createUser button clicked");
     const username = usernameInput.value.trim();
     if (username.length < 3) {
         showMessageBox("Le nom d'utilisateur doit contenir au moins 3 caractères.");
@@ -351,10 +333,10 @@ function createUser() {
         id: username,
         name: username,
         quizStats: {
-            'figures': { overallCompletedQuestions: new Set(), modes: {} },
-            'tonalites': { overallCompletedQuestions: new Set(), modes: {} },
+            'figures': { overallCompletedQuestions: new Set() },
+            'tonalites': { overallCompletedQuestions: new Set() },
             'dissertationPlan': { isCompleted: false },
-            'ultimate-challenge': { highScore: 0 }
+            'ultimate-challenge': { highScore: 0 } // Add stats for ultimate challenge
         },
         dissertationHistory: []
     };
@@ -367,8 +349,6 @@ function createUser() {
     deleteUserBtn.style.display = 'block';
     renderProfileList();
     updateProgressBars(); // Update progress for new user
-    usernameInput.value = ''; // Clear input field
-    console.log("New user created:", activeUser);
 
     // Easter egg check
     if (username.toLowerCase() === 'le kk' || username.toLowerCase() === 'cuit') {
@@ -377,29 +357,23 @@ function createUser() {
 }
 
 function loadUser(username) {
-    console.log("loadUser button clicked for:", username);
     if (!users[username]) {
         showMessageBox("Profil non trouvé.");
         return;
     }
     activeUser = users[username];
     // Ensure all necessary stats fields are initialized for older users
-    ['figures', 'tonalites', 'dissertationPlan', 'ultimate-challenge'].forEach(quizId => {
-        if (!activeUser.quizStats[quizId]) {
-            activeUser.quizStats[quizId] = {
-                overallCompletedQuestions: new Set(),
-                isCompleted: false,
-                highScore: 0
-            };
-        } else if (activeUser.quizStats[quizId].overallCompletedQuestions && !(activeUser.quizStats[quizId].overallCompletedQuestions instanceof Set)) {
-            activeUser.quizStats[quizId].overallCompletedQuestions = new Set(activeUser.quizStats[quizId].overallCompletedQuestions);
-        } else if (!activeUser.quizStats[quizId].overallCompletedQuestions) {
-            activeUser.quizStats[quizId].overallCompletedQuestions = new Set();
-        }
-        if (typeof activeUser.quizStats[quizId].isCompleted === 'undefined') activeUser.quizStats[quizId].isCompleted = false;
-        if (typeof activeUser.quizStats[quizId].highScore === 'undefined') activeUser.quizStats[quizId].highScore = 0;
-        if (!activeUser.quizStats[quizId].modes) activeUser.quizStats[quizId].modes = {}; // Ensure modes object exists
-    });
+    if (!activeUser.quizStats['figures']) activeUser.quizStats['figures'] = { overallCompletedQuestions: new Set() };
+    if (!activeUser.quizStats['figures'].overallCompletedQuestions) activeUser.quizStats['figures'].overallCompletedQuestions = new Set();
+    
+    if (!activeUser.quizStats['tonalites']) activeUser.quizStats['tonalites'] = { overallCompletedQuestions: new Set() };
+    if (!activeUser.quizStats['tonalites'].overallCompletedQuestions) activeUser.quizStats['tonalites'].overallCompletedQuestions = new Set();
+    
+    if (!activeUser.quizStats['dissertationPlan']) activeUser.quizStats['dissertationPlan'] = { isCompleted: false };
+    if (typeof activeUser.quizStats['dissertationPlan'].isCompleted === 'undefined') activeUser.quizStats['dissertationPlan'].isCompleted = false;
+    
+    if (typeof activeUser.quizStats['ultimate-challenge'] === 'undefined') activeUser.quizStats['ultimate-challenge'] = { highScore: 0 };
+
 
     saveUsers(); // Re-save to ensure Sets are properly handled and new fields added
     updateActiveUserDisplay();
@@ -408,8 +382,6 @@ function loadUser(username) {
     deleteUserBtn.style.display = 'block';
     renderProfileList();
     updateProgressBars(); // Update progress for loaded user
-    usernameInput.value = ''; // Clear input field
-    console.log("User loaded:", activeUser);
 
     // Easter egg check
     if (username.toLowerCase() === 'le kk' || username.toLowerCase() === 'cuit') {
@@ -418,7 +390,6 @@ function loadUser(username) {
 }
 
 function deleteCurrentUser() {
-    console.log("deleteCurrentUser button clicked");
     if (!activeUser) {
         showMessageBox("Aucun profil actif à supprimer.");
         return;
@@ -426,7 +397,6 @@ function deleteCurrentUser() {
     showMessageBox(`Êtes-vous sûr de vouloir supprimer le profil de '${activeUser.name}' ? Toutes les statistiques associées seront perdues.<br><button id="confirmDeleteUserBtn" class="message-box-btn">Oui</button><button id="cancelDeleteUserBtn" class="message-box-btn">Non</button>`);
 
     document.getElementById('confirmDeleteUserBtn').addEventListener('click', () => {
-        console.log("Confirm delete user button clicked");
         delete users[activeUser.id];
         activeUser = null;
         saveUsers();
@@ -435,7 +405,7 @@ function deleteCurrentUser() {
         viewStatsBtn.style.display = 'none';
         deleteUserBtn.style.display = 'none';
         renderProfileList();
-        showMenu(); // Calls updateProgressBars internally
+        showMenu();
         const messageBox = document.querySelector('.message-box');
         if (messageBox) {
             document.body.removeChild(messageBox);
@@ -443,7 +413,6 @@ function deleteCurrentUser() {
     });
 
     document.getElementById('cancelDeleteUserBtn').addEventListener('click', () => {
-        console.log("Cancel delete user button clicked");
         const messageBox = document.querySelector('.message-box');
         if (messageBox) {
             document.body.removeChild(messageBox);
@@ -471,10 +440,7 @@ function renderProfileList() {
         if (activeUser && activeUser.id === userId) {
             userBtn.classList.add('selected');
         }
-        userBtn.addEventListener('click', () => {
-            console.log("Profile button clicked for:", userId);
-            loadUser(userId);
-        });
+        userBtn.addEventListener('click', () => loadUser(userId));
         profileList.appendChild(userBtn);
     }
 }
@@ -482,7 +448,6 @@ function renderProfileList() {
 // --- FONCTIONS DE GESTION DES QUIZ (Chargement & Sélection) ---
 
 function selectQuiz(quizId) {
-    console.log("selectQuiz called for:", quizId);
     if (!activeUser) {
         showMessageBox("Veuillez créer ou charger un profil utilisateur avant de choisir un quiz.");
         return;
@@ -499,11 +464,11 @@ function selectQuiz(quizId) {
 function getQuizStatsForCurrentUser(quizId, gameMode = null, difficulty = null) {
     if (!activeUser) return null;
     if (!activeUser.quizStats[quizId]) {
-        activeUser.quizStats[quizId] = {
+        // Initialize basic structure if it doesn't exist
+        activeUser.quizStats[quizId] = { 
             overallCompletedQuestions: new Set(),
             isCompleted: false, // For dissertationPlan
-            highScore: 0, // For ultimate-challenge
-            modes: {} // Ensure modes is initialized
+            highScore: 0 // For ultimate-challenge
         };
     }
     // For mode/difficulty specific stats, nest under 'modes'
@@ -593,7 +558,6 @@ function saveQuizStats(quizId, finalScore, totalQuestionsPlayed, questionResults
 }
 
 function displayOverallStats() {
-    console.log("displayOverallStats button clicked");
     if (!activeUser) {
         showMessageBox("Veuillez charger un profil pour voir les statistiques.");
         return;
@@ -672,8 +636,11 @@ function findQuestionByHash(quizId, promptHash) {
     let quizQuestions = [];
     if (allQuizData[quizId]) {
         quizQuestions = allQuizData[quizId].questions;
-    } else if (ultimateChallengeData.quizId === quizId) { // Changed to directly check if looking for ultimate challenge questions
-        quizQuestions = ultimateChallengeData.questions;
+    } else if (quizId === ultimateChallengeData.quizId) {
+        // For ultimate challenge, we combine questions from all quizzes
+        quizQuestions = [...allQuizData['figures'].questions, ...allQuizData['tonalites'].questions];
+        // Add specific ultimate challenge plan questions if they are distinct
+        quizQuestions.push(...ultimateChallengeData.questions.filter(q => q.quizId === ultimateChallengeData.quizId)); // This filters out original quiz questions
     }
     return quizQuestions.find(q => stringToHash(q.prompt) === promptHash);
 }
@@ -711,7 +678,6 @@ function stringToHash(str) {
 }
 
 function showMenu() {
-    console.log("showMenu called");
     selectionContainer.style.display = 'block';
     quizContainer.style.display = 'none';
     statsContainer.style.display = 'none';
@@ -732,7 +698,6 @@ function showMenu() {
 }
 
 function startQuiz() {
-    console.log("startQuiz button clicked");
     if (!currentQuizData) {
         showMessageBox("Veuillez sélectionner un quiz.");
         return;
@@ -921,7 +886,6 @@ function handleAnswer(isCorrect) {
 }
 
 form.addEventListener("submit", function(e) {
-    console.log("Form submitted (submitBtn clicked)");
     e.preventDefault();
     submitBtn.disabled = true;
     stopTimer();
@@ -933,7 +897,6 @@ form.addEventListener("submit", function(e) {
 });
 
 explanationBtn.addEventListener("click", () => {
-    console.log("explanationBtn clicked");
     const currentQuestion = questionsForThisQuiz[currentQuestionIndex];
     const explicationText = `<br><br><strong>Explication :</strong><br>${currentQuestion.explication}`;
 
@@ -952,7 +915,6 @@ explanationBtn.addEventListener("click", () => {
 });
 
 nextBtn.addEventListener("click", () => {
-    console.log("nextBtn clicked");
     currentQuestionIndex++;
     updateQuestion();
 });
@@ -996,12 +958,8 @@ function endQuiz(survivalFailed = false) {
     viewQuizStatsBtn.style.display = 'block';
 }
 
-replayBtn.addEventListener('click', () => {
-    console.log("replayBtn clicked");
-    startQuiz();
-});
+replayBtn.addEventListener('click', startQuiz);
 viewQuizStatsBtn.addEventListener('click', () => {
-    console.log("viewQuizStatsBtn clicked");
     selectionContainer.style.display = 'none';
     quizContainer.style.display = 'none';
     dissertationContainer.style.display = 'none';
@@ -1064,19 +1022,15 @@ viewQuizStatsBtn.addEventListener('click', () => {
     }
 });
 
-backToMainMenuFromStatsBtn.addEventListener('click', () => {
-    console.log("backToMainMenuFromStatsBtn clicked");
-    showMenu();
-});
+backToMainMenuFromStatsBtn.addEventListener('click', showMenu);
 
 // --- LOGIQUE DU THÈME SOMBRE ---
 function applyTheme(theme) {
     document.body.classList.toggle('dark-mode', theme === 'dark');
     themeToggleBtn.textContent = theme === 'dark' ? 'Thème Clair' : 'Thème Sombre';
     localStorage.setItem('quizTheme', theme);
-});
+}
 themeToggleBtn.addEventListener('click', () => {
-    console.log("themeToggleBtn clicked");
     const currentTheme = localStorage.getItem('quizTheme') || 'light';
     applyTheme(currentTheme === 'light' ? 'dark' : 'light');
 });
@@ -1084,7 +1038,6 @@ themeToggleBtn.addEventListener('click', () => {
 // --- GESTION DES SÉLECTIONS D'OPTIONS DE JEU ---
 gameModeOptions.addEventListener('click', (e) => {
     if (e.target.tagName === 'BUTTON') {
-        console.log("Game mode option clicked:", e.target.dataset.mode);
         Array.from(gameModeOptions.children).forEach(btn => btn.classList.remove('selected'));
         e.target.classList.add('selected');
         selectedGameMode = e.target.dataset.mode;
@@ -1094,7 +1047,6 @@ gameModeOptions.addEventListener('click', (e) => {
 
 difficultyOptions.addEventListener('click', (e) => {
     if (e.target.tagName === 'BUTTON') {
-        console.log("Difficulty option clicked:", e.target.dataset.difficulty);
         Array.from(difficultyOptions.children).forEach(btn => btn.classList.remove('selected'));
         e.target.classList.add('selected');
         selectedDifficulty = e.target.dataset.difficulty;
@@ -1103,23 +1055,17 @@ difficultyOptions.addEventListener('click', (e) => {
 });
 
 startFiguresBtn.addEventListener('click', () => {
-    console.log("startFiguresBtn clicked");
     selectQuiz('figures');
     gameOptionsSection.style.display = 'block'; // Show options after selecting quiz
 });
 startTonalitesBtn.addEventListener('click', () => {
-    console.log("startTonalitesBtn clicked");
     selectQuiz('tonalites');
     gameOptionsSection.style.display = 'block'; // Show options after selecting quiz
 });
-startSelectedQuizBtn.addEventListener('click', () => {
-    console.log("startSelectedQuizBtn clicked");
-    startQuiz();
-});
+startSelectedQuizBtn.addEventListener('click', startQuiz);
 
 // --- FONCTIONS POUR LA DISSERTATION (Simulation) ---
 function showDissertationSection() {
-    console.log("showDissertationSection called");
     if (!activeUser) {
         showMessageBox("Veuillez créer ou charger un profil utilisateur pour rédiger une dissertation.");
         return;
@@ -1153,7 +1099,6 @@ function showDissertationSection() {
 }
 
 startDissertationBtn.addEventListener('click', () => {
-    console.log("startDissertationBtn clicked (disabled functionality)");
     showMessageBox("La fonctionnalité de rédaction et d'analyse de dissertation est actuellement en développement. Veuillez utiliser le jeu de 'Plan de Dissertation' à la place !");
     // Optionally still show the section but keep analyze button disabled
     showDissertationSection();
@@ -1161,7 +1106,6 @@ startDissertationBtn.addEventListener('click', () => {
 
 
 selectDissertationTopicBtn.addEventListener('click', () => {
-    console.log("selectDissertationTopicBtn clicked");
     dissertationTopicDisplay.textContent = 'Aucun sujet sélectionné.';
     selectDissertationTopicBtn.style.display = 'none';
     dissertationTopicSelection.style.display = 'block';
@@ -1169,7 +1113,6 @@ selectDissertationTopicBtn.addEventListener('click', () => {
 });
 
 confirmDissertationTopicBtn.addEventListener('click', () => {
-    console.log("confirmDissertationTopicBtn clicked");
     const selectedTopic = dissertationSubjectSelect.value;
     if (selectedTopic) {
         selectedDissertationTopic = selectedTopic;
@@ -1183,17 +1126,13 @@ confirmDissertationTopicBtn.addEventListener('click', () => {
 });
 
 analyzeDissertationBtn.addEventListener('click', async () => {
-    console.log("analyzeDissertationBtn clicked (disabled functionality)");
     // This button is now disabled in HTML, but keeping the function for completeness
     showMessageBox("La fonctionnalité d'analyse de dissertation est désactivée pour le moment.");
     return; // Prevent execution
 });
 
 
-backToMenuFromDissertationBtn.addEventListener('click', () => {
-    console.log("backToMenuFromDissertationBtn clicked");
-    showMenu();
-});
+backToMenuFromDissertationBtn.addEventListener('click', showMenu);
 
 /**
  * Simule l'appel à une API backend pour l'analyse de dissertation par une IA.
@@ -1258,10 +1197,7 @@ async function callAIAnalysisAPI(topic, content) {
 }
 
 // --- NOUVEAU JEU : PLAN DE DISSERTATION ---
-startDissertationPlanBtn.addEventListener('click', () => {
-    console.log("startDissertationPlanBtn clicked");
-    showDissertationPlanGame();
-});
+startDissertationPlanBtn.addEventListener('click', showDissertationPlanGame);
 
 function showDissertationPlanGame() {
     if (!activeUser) {
@@ -1278,7 +1214,6 @@ function showDissertationPlanGame() {
 }
 
 function generateNewPlan() {
-    console.log("generateNewPlan called");
     planFeedback.innerHTML = '';
     checkPlanBtn.style.display = 'block';
     newPlanBtn.style.display = 'none';
@@ -1323,7 +1258,6 @@ function addDragAndDropListeners() {
     }
 
     sortablePlanBlocks.addEventListener('dragstart', (e) => {
-        console.log("dragstart detected");
         draggedItem = e.target;
         if (!draggedItem.classList.contains('plan-block')) { // Ensure we are dragging a plan-block
             draggedItem = null;
@@ -1339,7 +1273,6 @@ function addDragAndDropListeners() {
     });
 
     sortablePlanBlocks.addEventListener('dragend', () => {
-        console.log("dragend detected");
         // Cleanup: remove placeholder and remove dragging class
         if (placeholder.parentNode) {
             placeholder.parentNode.removeChild(placeholder);
@@ -1379,7 +1312,6 @@ function addDragAndDropListeners() {
     });
 
     sortablePlanBlocks.addEventListener('drop', () => {
-        console.log("drop detected");
         if (draggedItem && placeholder.parentNode) {
             // Replace the placeholder with the actual dragged item
             placeholder.parentNode.replaceChild(draggedItem, placeholder);
@@ -1387,10 +1319,7 @@ function addDragAndDropListeners() {
     });
 }
 
-checkPlanBtn.addEventListener('click', () => {
-    console.log("checkPlanBtn clicked");
-    checkPlanOrder();
-});
+checkPlanBtn.addEventListener('click', checkPlanOrder);
 
 function checkPlanOrder() {
     const currentOrderElements = Array.from(sortablePlanBlocks.children);
@@ -1426,14 +1355,8 @@ function checkPlanOrder() {
     newPlanBtn.style.display = 'block';
 }
 
-newPlanBtn.addEventListener('click', () => {
-    console.log("newPlanBtn clicked");
-    generateNewPlan();
-});
-backToMenuFromPlanBtn.addEventListener('click', () => {
-    console.log("backToMenuFromPlanBtn clicked");
-    showMenu();
-});
+newPlanBtn.addEventListener('click', generateNewPlan);
+backToMenuFromPlanBtn.addEventListener('click', showMenu);
 
 // --- FONCTIONS DE GESTION DE LA PROGRESSION ET DU DÉFI ULTIME ---
 
@@ -1453,9 +1376,7 @@ function calculateGameProgress(quizId) {
 }
 
 function updateProgressBars() {
-    console.log("updateProgressBars called.");
     if (!activeUser) {
-        console.log("No active user for progress bars. Setting to 0%.");
         // If no active user, set all to 0% and hide ultimate challenge button
         figuresProgressBarFill.style.width = '0%';
         figuresProgressText.textContent = '0%';
@@ -1470,38 +1391,27 @@ function updateProgressBars() {
     const figuresProgress = calculateGameProgress('figures');
     figuresProgressBarFill.style.width = `${figuresProgress}%`;
     figuresProgressText.textContent = `${figuresProgress}%`;
-    console.log(`Figures progress: ${figuresProgress}%`);
 
     const tonalitesProgress = calculateGameProgress('tonalites');
     tonalitesProgressBarFill.style.width = `${tonalitesProgress}%`;
     tonalitesProgressText.textContent = `${tonalitesProgress}%`;
-    console.log(`Tonalites progress: ${tonalitesProgress}%`);
 
     const dissertationPlanProgress = calculateGameProgress('dissertationPlan');
     dissertationPlanProgressBarFill.style.width = `${dissertationPlanProgress}%`;
     dissertationPlanProgressText.textContent = `${dissertationPlanProgress}%`;
-    console.log(`Dissertation Plan progress: ${dissertationPlanProgress}%`);
-
 
     // Check if all games are 100% complete to unlock ultimate challenge
     if (figuresProgress === 100 && tonalitesProgress === 100 && dissertationPlanProgress === 100) {
         startUltimateChallengeBtn.style.display = 'block';
-        console.log("All quizzes are 100% complete. Ultimate Challenge button displayed.");
     } else {
         startUltimateChallengeBtn.style.display = 'none';
-        console.log("Quizzes not all 100% complete. Ultimate Challenge button hidden.");
     }
 }
 
-startUltimateChallengeBtn.addEventListener('click', () => {
-    console.log("startUltimateChallengeBtn clicked");
-    startUltimateChallenge();
-});
+startUltimateChallengeBtn.addEventListener('click', startUltimateChallenge);
 
 function startUltimateChallenge() {
-    console.log("startUltimateChallenge function called.");
     if (!activeUser) {
-        console.log("No active user found. Showing message box.");
         showMessageBox("Veuillez créer ou charger un profil utilisateur.");
         return;
     }
@@ -1517,11 +1427,11 @@ function startUltimateChallenge() {
     // To make it more "dissertation plan" specific, we'd need new questions here.
     // Example for a simple 'plan' question:
     const planQuestions = [
-        {"prompt": "Quelle est la première étape d'une introduction de dissertation ?", "answer": "Accroche", "explication": "L'accroche est l'élément initial qui capte l'attention du lecteur et introduit le sujet.", "difficulty": "easy", "quizId": "ultimate-challenge"},
-        {"prompt": "Que doit-on trouver après la problématique dans une introduction ?", "answer": "Annonce du Plan", "explication": "L'annonce du plan présente l'organisation des arguments qui seront développés dans le corps de la dissertation.", "difficulty": "easy", "quizId": "ultimate-challenge"},
-        {"prompt": "Quel est le rôle d'une transition entre deux parties de développement ?", "answer": "Faire le lien et annoncer la suite", "explication": "Une transition assure la cohérence du raisonnement en résumant la partie précédente et en introduisant la suivante.", "difficulty": "medium", "quizId": "ultimate-challenge"},
-        {"prompt": "Quels éléments composent généralement la conclusion d'une dissertation ?", "answer": "Bilan et Ouverture", "explication": "La conclusion récapitule les points essentiels et ouvre vers de nouvelles perspectives ou questions.", "difficulty": "medium", "quizId": "ultimate-challenge"},
-        {"prompt": "Outre l'accroche, la problématique et l'annonce du plan, que trouve-t-on d'autre dans l'introduction ?", "answer": "Présentation du texte et de l'auteur", "explication": "Après l'accroche, il est crucial de présenter l'œuvre ou l'extrait étudié et son auteur avant d'énoncer la problématique.", "difficulty": "medium", "quizId": "ultimate-challenge"},
+        {"prompt": "Quelle est la première étape d'une introduction de dissertation ?", "answer": "Accroche", "explication": "L'accroche est l'élément initial qui capte l'attention du lecteur et introduit le sujet.", "difficulty": "easy", "quizId": "ultimate-challenge-plan"},
+        {"prompt": "Que doit-on trouver après la problématique dans une introduction ?", "answer": "Annonce du Plan", "explication": "L'annonce du plan présente l'organisation des arguments qui seront développés dans le corps de la dissertation.", "difficulty": "easy", "quizId": "ultimate-challenge-plan"},
+        {"prompt": "Quel est le rôle d'une transition entre deux parties de développement ?", "answer": "Faire le lien et annoncer la suite", "explication": "Une transition assure la cohérence du raisonnement en résumant la partie précédente et en introduisant la suivante.", "difficulty": "medium", "quizId": "ultimate-challenge-plan"},
+        {"prompt": "Quels éléments composent généralement la conclusion d'une dissertation ?", "answer": "Bilan et Ouverture", "explication": "La conclusion récapitule les points essentiels et ouvre vers de nouvelles perspectives ou questions.", "difficulty": "medium", "quizId": "ultimate-challenge-plan"},
+        {"prompt": "Outre l'accroche, la problématique et l'annonce du plan, que trouve-t-on d'autre dans l'introduction ?", "answer": "Présentation du texte et de l'auteur", "explication": "Après l'accroche, il est crucial de présenter l'œuvre ou l'extrait étudié et son auteur avant d'énoncer la problématique.", "difficulty": "medium", "quizId": "ultimate-challenge-plan"},
     ];
 
     // Combine all questions, remove duplicates if necessary (using a Map for prompts)
@@ -1539,9 +1449,8 @@ function startUltimateChallenge() {
     // Limit to defaultLength if specified
     ultimateChallengeData.questions = ultimateChallengeData.questions.slice(0, ultimateChallengeData.defaultLength);
     
-    console.log("Number of questions prepared for Ultimate Challenge:", ultimateChallengeData.questions.length);
     if (ultimateChallengeData.questions.length === 0) {
-        showMessageBox("Impossible de démarrer le Défi Ultime : pas assez de questions disponibles. Assurez-vous que les autres quiz contiennent des questions.");
+        showMessageBox("Impossible de démarrer le Défi Ultime : pas assez de questions disponibles.");
         showMenu();
         return;
     }
@@ -1549,7 +1458,6 @@ function startUltimateChallenge() {
     currentQuizData = ultimateChallengeData; // Set current quiz data to ultimate challenge
     selectedGameMode = 'ultimate-challenge'; // Set specific game mode
     selectedDifficulty = 'hard'; // Force difficulty to hard for ultimate challenge
-    console.log("Starting Ultimate Challenge with settings:", { currentQuizData: currentQuizData.quizId, selectedGameMode, selectedDifficulty });
 
     startQuiz(); // Reuse the existing startQuiz logic
 }
@@ -1563,7 +1471,6 @@ async function initialize() {
     showMenu(); // Call showMenu to ensure progress bars are updated on load
 }
 
-// Attach event listeners
 createUserBtn.addEventListener('click', createUser);
 loadUserBtn.addEventListener('click', () => {
     const username = usernameInput.value.trim();
@@ -1577,4 +1484,3 @@ viewStatsBtn.addEventListener('click', displayOverallStats);
 deleteUserBtn.addEventListener('click', deleteCurrentUser);
 
 initialize();
-

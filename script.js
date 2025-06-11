@@ -178,7 +178,7 @@ let allQuizData = {
             { "prompt": "Le texte présente un monde magique, où le surnaturel est accepté naturellement.", "answer": "Tonalité merveilleuse", "explication": "On trouve des éléments magiques (fées, dragons…) dans un vocabulaire féérique et imaginaire, sans aucun doute chez les personnages.", "difficulty": "easy" },
             { "prompt": "Tonalité qui met en scène des situations extrêmes et des personnages aux passions violentes.", "answer": "Dramatique", "difficulty": "hard", "explication": "La tonalité dramatique est caractéristique des œuvres où les événements s'enchaînent de manière tendue, aboutissant souvent à une crise ou un dénouement intense." },
             { "prompt": "Le texte exprime la joie, l'enthousiasme, la célébration.", "answer": "Tonalité épidictique (louange)", "difficulty": "medium", "explication": "Caractérisée par un vocabulaire mélioratif, des exclamations et un ton solennel, elle vise à louer ou blâmer." },
-            { "prompt": "Le texte invite à la méditation, à la réflexion sur la condition humaine.", "answer": "Tonalité philosophique", "difficulty": "medium", "explication": "Utilise un vocabulaire abstrait, des questions rhétoriques, et une argumentation logique pour provoquer la pensée." },
+            { "prompt": "Le texte invite à la méditation, à la réflexion sur la condition humaine.", "answer": "Tonalité philosophique", "difficulty": "medium", "explication": "Utilise un vocabulaire abstrait, des questions rhétoriques, et une argumentation logique pour provoquer la pensée."onese" },
             { "prompt": "Le texte vise à émouvoir, à provoquer des sentiments de pitié ou d'horreur.", "answer": "Tonalité pathétique", "difficulty": "easy", "explication": "Elle se manifeste par un vocabulaire de la souffrance, des larmes, et des exclamations." },
             { "prompt": "Le texte relate des événements passés, souvent avec une visée historique ou documentaire.", "answer": "Tonalité narrative", "difficulty": "easy", "explication": "Caractérisée par l'emploi du passé simple, de marqueurs temporels, et une succession d'actions." }
         ]
@@ -216,7 +216,7 @@ const dissertationPlanElements = [
 // Définition du défi ultime
 const ultimateChallengeData = {
     quizId: "ultimate-challenge",
-    title: "🔥 DÉFI ULTIME : Casse-tête infernal ! �",
+    title: "🔥 DÉFI ULTIME : Casse-tête infernal ! 🔥",
     defaultLength: 50, // 50 questions
     timePerQuestion: 10, // 10 secondes par question
     lives: 3, // 3 vies
@@ -1468,7 +1468,9 @@ startUltimateChallengeBtn.addEventListener('click', () => {
 });
 
 function startUltimateChallenge() {
+    console.log("startUltimateChallenge function called.");
     if (!activeUser) {
+        console.log("No active user found. Showing message box.");
         showMessageBox("Veuillez créer ou charger un profil utilisateur.");
         return;
     }
@@ -1506,6 +1508,7 @@ function startUltimateChallenge() {
     // Limit to defaultLength if specified
     ultimateChallengeData.questions = ultimateChallengeData.questions.slice(0, ultimateChallengeData.defaultLength);
     
+    console.log("Number of questions for Ultimate Challenge:", ultimateChallengeData.questions.length);
     if (ultimateChallengeData.questions.length === 0) {
         showMessageBox("Impossible de démarrer le Défi Ultime : pas assez de questions disponibles.");
         showMenu();
@@ -1543,4 +1546,3 @@ deleteUserBtn.addEventListener('click', deleteCurrentUser);
 
 initialize();
 
-�

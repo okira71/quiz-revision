@@ -61,11 +61,8 @@
                 <span id="dissertationPlanProgressText" class="progress-text">0%</span>
             </div>
             
-            <!-- Nouveau bouton pour le commentaire de texte -->
-            <button id="startCommentaireBtn" class="quiz-choice-btn">✍️ Commentaire de Texte</button>
-            
-            <!-- Ancien bouton de dissertation (peut être réactivé plus tard) -->
-            <button id="startDissertationBtn" class="quiz-choice-btn" style="display:none;">✍️ Dissertation</button>
+            <!-- Nouveau bouton pour la dissertation -->
+            <button id="startDissertationBtn" class="quiz-choice-btn">✍️ Dissertation</button>
 
             <!-- Défi Ultime -->
             <button id="startUltimateChallengeBtn" class="quiz-choice-btn ultimate-challenge-btn" style="display: none;">
@@ -94,25 +91,8 @@
             <button id="startSelectedQuizBtn" style="margin-top: 20px;">Démarrer le Quiz</button>
         </div>
     </div>
-    
-    <!-- Nouvelle section pour le générateur de commentaire -->
-    <div id="commentaireContainer" style="display: none;">
-        <h1>Générateur de Texte pour Commentaire</h1>
-        <div class="menu-section">
-            <h2>Texte à Analyser</h2>
-            <div id="randomTextDisplay" class="phrase" style="text-align: left; white-space: pre-wrap;"></div>
-            <button id="getNewTextBtn">Obtenir un autre texte</button>
-        </div>
 
-        <div class="menu-section">
-            <h2>Votre Commentaire</h2>
-            <textarea id="commentaireTextarea" rows="20" placeholder="Rédigez votre commentaire ou votre essai ici..."></textarea>
-             <button id="backToMenuFromCommentaireBtn" style="margin-top: 20px;">Retour au Menu Principal</button>
-        </div>
-    </div>
-
-
-    <!-- Ancienne section pour la dissertation (cachée pour le moment) -->
+    <!-- Nouvelle section pour la dissertation (désactivée pour le moment) -->
     <div id="dissertationContainer" style="display: none;">
         <h1>Rédigez votre Dissertation</h1>
         <p class="info-message">⚠️ La fonctionnalité de rédaction et d'analyse de dissertation est actuellement en développement. Veuillez utiliser le jeu de "Plan de Dissertation" !</p>
@@ -144,9 +124,9 @@
             <button id="backToMenuFromDissertationBtn" style="margin-top: 20px;">Retour au Menu Principal</button>
         </div>
     </div>
-    <!-- Fin de la section dissertation -->
+    <!-- Fin de la nouvelle section dissertation -->
 
-    <!-- Jeu de Plan de Dissertation -->
+    <!-- Nouveau jeu de Plan de Dissertation -->
     <div id="dissertationPlanGameContainer" style="display: none;">
         <h1>Reconstituez le Plan</h1>
         <p class="info-message">Réordonnez les blocs pour former un plan de dissertation correct.</p>
@@ -158,7 +138,7 @@
         <button id="newPlanBtn" style="display: none;">Nouveau Plan</button>
         <button id="backToMenuFromPlanBtn">Retour au Menu Principal</button>
     </div>
-    <!-- Fin du jeu -->
+    <!-- Fin du nouveau jeu -->
 
     <div id="quizContainer">
         <h1 id="quizTitle"></h1>

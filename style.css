@@ -139,7 +139,8 @@ body {
 }
 .menu-section input[type="text"],
 .menu-section select,
-#dissertationTextarea { /* Ajout de la textarea ici */
+#dissertationTextarea,
+#commentaireTextarea { /* Ajout de la nouvelle textarea ici */
     width: calc(100% - 20px);
     padding: 10px;
     margin-bottom: 15px;
@@ -258,10 +259,10 @@ button {
 }
 button:hover { background: var(--button-primary-hover); }
 
-#explanationBtn, #backToMenuBtn, #backToMenuFromDissertationBtn, #selectDissertationTopicBtn, #confirmDissertationTopicBtn, #backToMenuFromPlanBtn, #newPlanBtn {
+#explanationBtn, #backToMenuBtn, #backToMenuFromDissertationBtn, #selectDissertationTopicBtn, #confirmDissertationTopicBtn, #backToMenuFromPlanBtn, #newPlanBtn, #getNewTextBtn, #backToMenuFromCommentaireBtn {
     background: var(--button-secondary-bg);
 }
-#explanationBtn:hover, #backToMenuBtn:hover, #backToMenuFromDissertationBtn:hover, #selectDissertationTopicBtn:hover, #confirmDissertationTopicBtn:hover, #backToMenuFromPlanBtn:hover, #newPlanBtn:hover {
+#explanationBtn:hover, #backToMenuBtn:hover, #backToMenuFromDissertationBtn:hover, #selectDissertationTopicBtn:hover, #confirmDissertationTopicBtn:hover, #backToMenuFromPlanBtn:hover, #newPlanBtn:hover, #getNewTextBtn:hover, #backToMenuFromCommentaireBtn:hover {
     background: var(--button-secondary-hover);
 }
 
@@ -277,13 +278,17 @@ button:hover { background: var(--button-primary-hover); }
 .feedback.incorrect { color: var(--feedback-incorrect); }
 
 .score { margin-top: 35px; font-size: 1.3em; color: var(--phrase-color); }
-#quizContainer { display: none; width: 100%; }
-#statsContainer { display: none; width: 100%; }
-#dissertationContainer { display: none; width: 100%; }
-#dissertationPlanGameContainer { display: none; width: 100%; }
+#quizContainer,
+#statsContainer,
+#dissertationContainer,
+#dissertationPlanGameContainer,
+#commentaireContainer { 
+    display: none; 
+    width: 100%; 
+}
 
 
-#statsContainer h2, #dissertationContainer h1, #dissertationPlanGameContainer h1 {
+#statsContainer h2, #dissertationContainer h1, #dissertationPlanGameContainer h1, #commentaireContainer h1 {
     color: var(--header-color);
     font-size: 2em;
     margin-bottom: 20px;
@@ -469,4 +474,3 @@ button:hover { background: var(--button-primary-hover); }
     70% { transform: scale(1.03); box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
     100% { transform: scale(1); box-shadow: 0 0 0 rgba(220, 53, 69, 0); }
 }
-

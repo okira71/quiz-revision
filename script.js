@@ -178,7 +178,7 @@ let allQuizData = {
             { "prompt": "Le texte présente un monde magique, où le surnaturel est accepté naturellement.", "answer": "Tonalité merveilleuse", "explication": "On trouve des éléments magiques (fées, dragons…) dans un vocabulaire féérique et imaginaire, sans aucun doute chez les personnages.", "difficulty": "easy" },
             { "prompt": "Tonalité qui met en scène des situations extrêmes et des personnages aux passions violentes.", "answer": "Dramatique", "difficulty": "hard", "explication": "La tonalité dramatique est caractéristique des œuvres où les événements s'enchaînent de manière tendue, aboutissant souvent à une crise ou un dénouement intense." },
             { "prompt": "Le texte exprime la joie, l'enthousiasme, la célébration.", "answer": "Tonalité épidictique (louange)", "difficulty": "medium", "explication": "Caractérisée par un vocabulaire mélioratif, des exclamations et un ton solennel, elle vise à louer ou blâmer." },
-            { "prompt": "Le texte invite à la méditation, à la réflexion sur la condition humaine.", "answer": "Tonalité philosophique", "difficulty": "medium", "explication": "Utilise un vocabulaire abstrait, des questions rhétoriques, et une argumentation logique pour provoquer la pensée."onese" },
+            { "prompt": "Le texte invite à la méditation, à la réflexion sur la condition humaine.", "answer": "Tonalité philosophique", "difficulty": "medium", "explication": "Utilise un vocabulaire abstrait, des questions rhétoriques, et une argumentation logique pour provoquer la pensée." },
             { "prompt": "Le texte vise à émouvoir, à provoquer des sentiments de pitié ou d'horreur.", "answer": "Tonalité pathétique", "difficulty": "easy", "explication": "Elle se manifeste par un vocabulaire de la souffrance, des larmes, et des exclamations." },
             { "prompt": "Le texte relate des événements passés, souvent avec une visée historique ou documentaire.", "answer": "Tonalité narrative", "difficulty": "easy", "explication": "Caractérisée par l'emploi du passé simple, de marqueurs temporels, et une succession d'actions." }
         ]
@@ -256,16 +256,28 @@ function loadUsers() {
     const storedUsers = localStorage.getItem('quizUsers');
     if (storedUsers) {
         users = JSON.parse(storedUsers);
-        // Convert overallCompletedQuestions arrays back to Sets
+        // Convert overallCompletedQuestions arrays back to Sets and ensure full structure
         for (const userId in users) {
-            for (const quizId in users[userId].quizStats) {
-                if (users[userId].quizStats[quizId].overallCompletedQuestions) {
+            if (!users[userId].quizStats) {
+                users[userId].quizStats = {};
+            }
+            // Ensure all known quiz IDs have their basic stats initialized
+            ['figures', 'tonalites', 'dissertationPlan', 'ultimate-challenge'].forEach(quizId => {
+                if (!users[userId].quizStats[quizId]) {
+                    users[userId].quizStats[quizId] = {
+                        overallCompletedQuestions: new Set(),
+                        isCompleted: false, // For dissertationPlan
+                        highScore: 0 // For ultimate-challenge
+                    };
+                } else if (users[userId].quizStats[quizId].overallCompletedQuestions && !(users[userId].quizStats[quizId].overallCompletedQuestions instanceof Set)) {
                     users[userId].quizStats[quizId].overallCompletedQuestions = new Set(users[userId].quizStats[quizId].overallCompletedQuestions);
-                } else {
-                    // Initialize if missing (e.g., from older user data)
+                } else if (!users[userId].quizStats[quizId].overallCompletedQuestions) {
                     users[userId].quizStats[quizId].overallCompletedQuestions = new Set();
                 }
-            }
+                // Ensure isCompleted and highScore defaults if missing
+                if (typeof users[userId].quizStats[quizId].isCompleted === 'undefined') users[userId].quizStats[quizId].isCompleted = false;
+                if (typeof users[userId].quizStats[quizId].highScore === 'undefined') users[userId].quizStats[quizId].highScore = 0;
+            });
         }
         const activeUserId = localStorage.getItem('activeQuizUser');
         if (activeUserId && users[activeUserId]) {
@@ -297,23 +309,28 @@ function saveUsers() {
 }
 
 function unlockUltimateChallenge() {
+    console.log("Attempting to unlock Ultimate Challenge with secret code.");
     if (activeUser) {
-        // Unlock all questions for Figures and Tonalites
+        // Force completion for all quizzes
         allQuizData['figures'].questions.forEach(q => {
             activeUser.quizStats['figures'].overallCompletedQuestions.add(stringToHash(q.prompt));
         });
         allQuizData['tonalites'].questions.forEach(q => {
             activeUser.quizStats['tonalites'].overallCompletedQuestions.add(stringToHash(q.prompt));
         });
-        // Complete dissertation plan
         activeUser.quizStats['dissertationPlan'].isCompleted = true;
-        // Set a high score for ultimate challenge if not already set (or set to 0 for a true "new" score)
-        if (activeUser.quizStats['ultimate-challenge'].highScore === 0) {
-             activeUser.quizStats['ultimate-challenge'].highScore = 0; // Or some initial value like 1
+        
+        // Ensure ultimate challenge high score is initialized
+        if (typeof activeUser.quizStats['ultimate-challenge'].highScore === 'undefined') {
+             activeUser.quizStats['ultimate-challenge'].highScore = 0;
         }
+
         saveUsers();
         updateProgressBars();
         showMessageBox("🎉 Code secret activé ! Le Défi Ultime est débloqué !");
+        console.log("Ultimate Challenge unlocked. User stats after unlock:", activeUser.quizStats);
+    } else {
+        console.log("No active user to unlock Ultimate Challenge for.");
     }
 }
 
@@ -334,10 +351,10 @@ function createUser() {
         id: username,
         name: username,
         quizStats: {
-            'figures': { overallCompletedQuestions: new Set() },
-            'tonalites': { overallCompletedQuestions: new Set() },
+            'figures': { overallCompletedQuestions: new Set(), modes: {} },
+            'tonalites': { overallCompletedQuestions: new Set(), modes: {} },
             'dissertationPlan': { isCompleted: false },
-            'ultimate-challenge': { highScore: 0 } // Add stats for ultimate challenge
+            'ultimate-challenge': { highScore: 0 }
         },
         dissertationHistory: []
     };
@@ -351,6 +368,7 @@ function createUser() {
     renderProfileList();
     updateProgressBars(); // Update progress for new user
     usernameInput.value = ''; // Clear input field
+    console.log("New user created:", activeUser);
 
     // Easter egg check
     if (username.toLowerCase() === 'le kk' || username.toLowerCase() === 'cuit') {
@@ -366,17 +384,22 @@ function loadUser(username) {
     }
     activeUser = users[username];
     // Ensure all necessary stats fields are initialized for older users
-    if (!activeUser.quizStats['figures']) activeUser.quizStats['figures'] = { overallCompletedQuestions: new Set() };
-    if (!activeUser.quizStats['figures'].overallCompletedQuestions) activeUser.quizStats['figures'].overallCompletedQuestions = new Set();
-    
-    if (!activeUser.quizStats['tonalites']) activeUser.quizStats['tonalites'] = { overallCompletedQuestions: new Set() };
-    if (!activeUser.quizStats['tonalites'].overallCompletedQuestions) activeUser.quizStats['tonalites'].overallCompletedQuestions = new Set();
-    
-    if (!activeUser.quizStats['dissertationPlan']) activeUser.quizStats['dissertationPlan'] = { isCompleted: false };
-    if (typeof activeUser.quizStats['dissertationPlan'].isCompleted === 'undefined') activeUser.quizStats['dissertationPlan'].isCompleted = false;
-    
-    if (typeof activeUser.quizStats['ultimate-challenge'] === 'undefined') activeUser.quizStats['ultimate-challenge'] = { highScore: 0 };
-
+    ['figures', 'tonalites', 'dissertationPlan', 'ultimate-challenge'].forEach(quizId => {
+        if (!activeUser.quizStats[quizId]) {
+            activeUser.quizStats[quizId] = {
+                overallCompletedQuestions: new Set(),
+                isCompleted: false,
+                highScore: 0
+            };
+        } else if (activeUser.quizStats[quizId].overallCompletedQuestions && !(activeUser.quizStats[quizId].overallCompletedQuestions instanceof Set)) {
+            activeUser.quizStats[quizId].overallCompletedQuestions = new Set(activeUser.quizStats[quizId].overallCompletedQuestions);
+        } else if (!activeUser.quizStats[quizId].overallCompletedQuestions) {
+            activeUser.quizStats[quizId].overallCompletedQuestions = new Set();
+        }
+        if (typeof activeUser.quizStats[quizId].isCompleted === 'undefined') activeUser.quizStats[quizId].isCompleted = false;
+        if (typeof activeUser.quizStats[quizId].highScore === 'undefined') activeUser.quizStats[quizId].highScore = 0;
+        if (!activeUser.quizStats[quizId].modes) activeUser.quizStats[quizId].modes = {}; // Ensure modes object exists
+    });
 
     saveUsers(); // Re-save to ensure Sets are properly handled and new fields added
     updateActiveUserDisplay();
@@ -386,6 +409,7 @@ function loadUser(username) {
     renderProfileList();
     updateProgressBars(); // Update progress for loaded user
     usernameInput.value = ''; // Clear input field
+    console.log("User loaded:", activeUser);
 
     // Easter egg check
     if (username.toLowerCase() === 'le kk' || username.toLowerCase() === 'cuit') {
@@ -475,11 +499,11 @@ function selectQuiz(quizId) {
 function getQuizStatsForCurrentUser(quizId, gameMode = null, difficulty = null) {
     if (!activeUser) return null;
     if (!activeUser.quizStats[quizId]) {
-        // Initialize basic structure if it doesn't exist
-        activeUser.quizStats[quizId] = { 
+        activeUser.quizStats[quizId] = {
             overallCompletedQuestions: new Set(),
             isCompleted: false, // For dissertationPlan
-            highScore: 0 // For ultimate-challenge
+            highScore: 0, // For ultimate-challenge
+            modes: {} // Ensure modes is initialized
         };
     }
     // For mode/difficulty specific stats, nest under 'modes'
@@ -648,8 +672,7 @@ function findQuestionByHash(quizId, promptHash) {
     let quizQuestions = [];
     if (allQuizData[quizId]) {
         quizQuestions = allQuizData[quizId].questions;
-    } else if (quizId === ultimateChallengeData.quizId) {
-        // For ultimate challenge, we combine questions from all quizzes
+    } else if (ultimateChallengeData.quizId === quizId) { // Changed to directly check if looking for ultimate challenge questions
         quizQuestions = ultimateChallengeData.questions;
     }
     return quizQuestions.find(q => stringToHash(q.prompt) === promptHash);
@@ -1051,7 +1074,7 @@ function applyTheme(theme) {
     document.body.classList.toggle('dark-mode', theme === 'dark');
     themeToggleBtn.textContent = theme === 'dark' ? 'Thème Clair' : 'Thème Sombre';
     localStorage.setItem('quizTheme', theme);
-}
+});
 themeToggleBtn.addEventListener('click', () => {
     console.log("themeToggleBtn clicked");
     const currentTheme = localStorage.getItem('quizTheme') || 'light';
@@ -1430,7 +1453,9 @@ function calculateGameProgress(quizId) {
 }
 
 function updateProgressBars() {
+    console.log("updateProgressBars called.");
     if (!activeUser) {
+        console.log("No active user for progress bars. Setting to 0%.");
         // If no active user, set all to 0% and hide ultimate challenge button
         figuresProgressBarFill.style.width = '0%';
         figuresProgressText.textContent = '0%';
@@ -1445,20 +1470,26 @@ function updateProgressBars() {
     const figuresProgress = calculateGameProgress('figures');
     figuresProgressBarFill.style.width = `${figuresProgress}%`;
     figuresProgressText.textContent = `${figuresProgress}%`;
+    console.log(`Figures progress: ${figuresProgress}%`);
 
     const tonalitesProgress = calculateGameProgress('tonalites');
     tonalitesProgressBarFill.style.width = `${tonalitesProgress}%`;
     tonalitesProgressText.textContent = `${tonalitesProgress}%`;
+    console.log(`Tonalites progress: ${tonalitesProgress}%`);
 
     const dissertationPlanProgress = calculateGameProgress('dissertationPlan');
     dissertationPlanProgressBarFill.style.width = `${dissertationPlanProgress}%`;
     dissertationPlanProgressText.textContent = `${dissertationPlanProgress}%`;
+    console.log(`Dissertation Plan progress: ${dissertationPlanProgress}%`);
+
 
     // Check if all games are 100% complete to unlock ultimate challenge
     if (figuresProgress === 100 && tonalitesProgress === 100 && dissertationPlanProgress === 100) {
         startUltimateChallengeBtn.style.display = 'block';
+        console.log("All quizzes are 100% complete. Ultimate Challenge button displayed.");
     } else {
         startUltimateChallengeBtn.style.display = 'none';
+        console.log("Quizzes not all 100% complete. Ultimate Challenge button hidden.");
     }
 }
 
@@ -1486,11 +1517,11 @@ function startUltimateChallenge() {
     // To make it more "dissertation plan" specific, we'd need new questions here.
     // Example for a simple 'plan' question:
     const planQuestions = [
-        {"prompt": "Quelle est la première étape d'une introduction de dissertation ?", "answer": "Accroche", "explication": "L'accroche est l'élément initial qui capte l'attention du lecteur et introduit le sujet.", "difficulty": "easy", "quizId": "ultimate-challenge-plan"},
-        {"prompt": "Que doit-on trouver après la problématique dans une introduction ?", "answer": "Annonce du Plan", "explication": "L'annonce du plan présente l'organisation des arguments qui seront développés dans le corps de la dissertation.", "difficulty": "easy", "quizId": "ultimate-challenge-plan"},
-        {"prompt": "Quel est le rôle d'une transition entre deux parties de développement ?", "answer": "Faire le lien et annoncer la suite", "explication": "Une transition assure la cohérence du raisonnement en résumant la partie précédente et en introduisant la suivante.", "difficulty": "medium", "quizId": "ultimate-challenge-plan"},
-        {"prompt": "Quels éléments composent généralement la conclusion d'une dissertation ?", "answer": "Bilan et Ouverture", "explication": "La conclusion récapitule les points essentiels et ouvre vers de nouvelles perspectives ou questions.", "difficulty": "medium", "quizId": "ultimate-challenge-plan"},
-        {"prompt": "Outre l'accroche, la problématique et l'annonce du plan, que trouve-t-on d'autre dans l'introduction ?", "answer": "Présentation du texte et de l'auteur", "explication": "Après l'accroche, il est crucial de présenter l'œuvre ou l'extrait étudié et son auteur avant d'énoncer la problématique.", "difficulty": "medium", "quizId": "ultimate-challenge-plan"},
+        {"prompt": "Quelle est la première étape d'une introduction de dissertation ?", "answer": "Accroche", "explication": "L'accroche est l'élément initial qui capte l'attention du lecteur et introduit le sujet.", "difficulty": "easy", "quizId": "ultimate-challenge"},
+        {"prompt": "Que doit-on trouver après la problématique dans une introduction ?", "answer": "Annonce du Plan", "explication": "L'annonce du plan présente l'organisation des arguments qui seront développés dans le corps de la dissertation.", "difficulty": "easy", "quizId": "ultimate-challenge"},
+        {"prompt": "Quel est le rôle d'une transition entre deux parties de développement ?", "answer": "Faire le lien et annoncer la suite", "explication": "Une transition assure la cohérence du raisonnement en résumant la partie précédente et en introduisant la suivante.", "difficulty": "medium", "quizId": "ultimate-challenge"},
+        {"prompt": "Quels éléments composent généralement la conclusion d'une dissertation ?", "answer": "Bilan et Ouverture", "explication": "La conclusion récapitule les points essentiels et ouvre vers de nouvelles perspectives ou questions.", "difficulty": "medium", "quizId": "ultimate-challenge"},
+        {"prompt": "Outre l'accroche, la problématique et l'annonce du plan, que trouve-t-on d'autre dans l'introduction ?", "answer": "Présentation du texte et de l'auteur", "explication": "Après l'accroche, il est crucial de présenter l'œuvre ou l'extrait étudié et son auteur avant d'énoncer la problématique.", "difficulty": "medium", "quizId": "ultimate-challenge"},
     ];
 
     // Combine all questions, remove duplicates if necessary (using a Map for prompts)
@@ -1508,9 +1539,9 @@ function startUltimateChallenge() {
     // Limit to defaultLength if specified
     ultimateChallengeData.questions = ultimateChallengeData.questions.slice(0, ultimateChallengeData.defaultLength);
     
-    console.log("Number of questions for Ultimate Challenge:", ultimateChallengeData.questions.length);
+    console.log("Number of questions prepared for Ultimate Challenge:", ultimateChallengeData.questions.length);
     if (ultimateChallengeData.questions.length === 0) {
-        showMessageBox("Impossible de démarrer le Défi Ultime : pas assez de questions disponibles.");
+        showMessageBox("Impossible de démarrer le Défi Ultime : pas assez de questions disponibles. Assurez-vous que les autres quiz contiennent des questions.");
         showMenu();
         return;
     }
@@ -1518,6 +1549,7 @@ function startUltimateChallenge() {
     currentQuizData = ultimateChallengeData; // Set current quiz data to ultimate challenge
     selectedGameMode = 'ultimate-challenge'; // Set specific game mode
     selectedDifficulty = 'hard'; // Force difficulty to hard for ultimate challenge
+    console.log("Starting Ultimate Challenge with settings:", { currentQuizData: currentQuizData.quizId, selectedGameMode, selectedDifficulty });
 
     startQuiz(); // Reuse the existing startQuiz logic
 }

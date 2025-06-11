@@ -638,9 +638,7 @@ function findQuestionByHash(quizId, promptHash) {
         quizQuestions = allQuizData[quizId].questions;
     } else if (quizId === ultimateChallengeData.quizId) {
         // For ultimate challenge, we combine questions from all quizzes
-        quizQuestions = [...allQuizData['figures'].questions, ...allQuizData['tonalites'].questions];
-        // Add specific ultimate challenge plan questions if they are distinct
-        quizQuestions.push(...ultimateChallengeData.questions.filter(q => q.quizId === ultimateChallengeData.quizId)); // This filters out original quiz questions
+        quizQuestions = ultimateChallengeData.questions;
     }
     return quizQuestions.find(q => stringToHash(q.prompt) === promptHash);
 }
@@ -1484,3 +1482,4 @@ viewStatsBtn.addEventListener('click', displayOverallStats);
 deleteUserBtn.addEventListener('click', deleteCurrentUser);
 
 initialize();
+

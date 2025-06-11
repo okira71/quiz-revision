@@ -1,182 +1,197 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Quiz Littéraires Avancé</title>
-<!-- Importation du fichier CSS -->
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bac Français - Révision Facile</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Font Awesome pour les icônes (menu burger, utilisateur, etc.) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
-<div class="header-container">
-    <span id="currentUserDisplay"></span>
-    <button id="themeToggleBtn">Thème Sombre</button>
-</div>
-
-<div class="main-content">
-    <div id="selectionContainer">
-        <h1>Quiz Littéraires</h1>
-
-        <div class="menu-section">
-            <h2>Gérer les Profils</h2>
-            <label for="usernameInput">Nom d'utilisateur :</label>
-            <input type="text" id="usernameInput" placeholder="Entrez votre nom" />
-            <button id="createUserBtn">Créer Nouveau Profil</button>
-            <button id="loadUserBtn">Charger Profil</button>
-            <div id="profileList" class="profile-list" style="margin-top: 15px;">
-                <!-- Les profils chargés seront insérés ici -->
-            </div>
-            <p style="font-size: 0.9em; margin-top: 15px;">Profil actif : <strong id="activeUserProfile">Aucun</strong></p>
-            <button id="viewStatsBtn" style="display: none;">Voir mes Statistiques</button>
-            <button id="deleteUserBtn" style="display: none;">Supprimer Profil</button>
+    <header class="header">
+        <div class="container header-content">
+            <a href="index.html" class="logo">
+                <img src="assets/logo.png" alt="Logo Bac Français" class="logo-img">
+                <span class="logo-text">Bac Français</span>
+            </a>
+            <nav class="nav">
+                <ul class="nav-list">
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="revision.html">Révisions</a></li>
+                    <li><a href="classement.html">Classement</a></li>
+                    <li class="user-controls">
+                        <button id="btn-login-header" class="btn btn-primary">Connexion</button>
+                        <button id="btn-signup-header" class="btn btn-secondary">Créer un compte</button>
+                        <div id="user-profile-info" class="user-profile-info hidden">
+                            <span id="welcome-message">Bienvenue, Utilisateur!</span>
+                            <button id="btn-logout" class="btn btn-danger">Déconnexion</button>
+                        </div>
+                    </li>
+                </ul>
+                <button class="burger-menu-toggle" aria-label="Ouvrir le menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </nav>
         </div>
+    </header>
 
-        <div class="menu-section">
-            <h2>Choisir un Quiz</h2>
-            <button id="startFiguresBtn" class="quiz-choice-btn">🧠 Figures de Style</button>
-            <div class="progress-section">
-                <label>Progression Figures de Style :</label>
-                <div class="progress-bar-container menu-progress-bar">
-                    <div class="progress-bar-fill" id="figuresProgressBarFill"></div>
+    <main class="main-content container">
+        <section class="hero">
+            <h1>Préparez le Bac de Français sereinement !</h1>
+            <p>Accédez à des fiches, des lectures linéaires interactives et des quiz pour maîtriser toutes les notions.</p>
+            <div class="hero-actions">
+                <a href="revision.html" class="btn btn-primary btn-large">Commencer les révisions</a>
+                <a href="classement.html" class="btn btn-secondary btn-large">Voir le classement</a>
+            </div>
+        </section>
+
+        <section class="quick-access-section">
+            <h2>Accès Rapide</h2>
+            <div class="quick-access-grid">
+                <a href="revision.html" class="quick-access-card">
+                    <i class="fas fa-book-open"></i>
+                    <h3>Fiches de Révision</h3>
+                    <p>Consultez des résumés clairs sur les auteurs, mouvements et figures de style.</p>
+                </a>
+                <a href="revision.html#quiz" class="quick-access-card">
+                    <i class="fas fa-question-circle"></i>
+                    <h3>Quiz Interactifs</h3>
+                    <p>Testez vos connaissances avec des QCM thématiques et un corrigé instantané.</p>
+                </a>
+                <a href="classement.html" class="quick-access-card">
+                    <i class="fas fa-trophy"></i>
+                    <h3>Votre Classement</h3>
+                    <p>Mesurez votre progression et comparez-vous aux autres élèves.</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="featured-section">
+            <h2>À la Une !</h2>
+            <div class="featured-grid">
+                <div class="featured-card">
+                    <h3>Fiche du Jour : Le Romantisme</h3>
+                    <p>Découvrez les caractéristiques principales de ce mouvement littéraire essentiel.</p>
+                    <a href="revision.html#fiche-romantisme" class="btn btn-link">Lire la fiche</a>
                 </div>
-                <span id="figuresProgressText" class="progress-text">0%</span>
-            </div>
-
-            <button id="startTonalitesBtn" class="quiz-choice-btn">📘 Tonalités Littéraires</button>
-            <div class="progress-section">
-                <label>Progression Tonalités Littéraires :</label>
-                <div class="progress-bar-container menu-progress-bar">
-                    <div class="progress-bar-fill" id="tonalitesProgressBarFill"></div>
+                <div class="featured-card">
+                    <h3>Citation Inspirante</h3>
+                    <blockquote>"L'art est le plus beau des mensonges." <small>— Claude Monet</small></blockquote>
+                    <p>Une pensée pour la profondeur et la complexité de l'expression artistique.</p>
                 </div>
-                <span id="tonalitesProgressText" class="progress-text">0%</span>
-            </div>
-
-            <button id="startDissertationPlanBtn" class="quiz-choice-btn">📝 Plan de Dissertation</button>
-            <div class="progress-section">
-                <label>Progression Plan de Dissertation :</label>
-                <div class="progress-bar-container menu-progress-bar">
-                    <div class="progress-bar-fill" id="dissertationPlanProgressBarFill"></div>
+                <div class="featured-card">
+                    <h3>Vos Stats de la Semaine</h3>
+                    <p><strong>Quiz Réussis :</strong> <span id="stats-quiz-success">0</span></p>
+                    <p><strong>Fiches Lues :</strong> <span id="stats-fiches-read">0</span></p>
+                    <p><strong>Temps Passé :</strong> <span id="stats-time-spent">0</span> min</p>
+                    <a href="profil.html" class="btn btn-link">Voir mon profil</a>
                 </div>
-                <span id="dissertationPlanProgressText" class="progress-text">0%</span>
             </div>
-            
-            <!-- Nouveau bouton pour la dissertation -->
-            <button id="startDissertationBtn" class="quiz-choice-btn">✍️ Dissertation</button>
+        </section>
 
-            <!-- Défi Ultime -->
-            <button id="startUltimateChallengeBtn" class="quiz-choice-btn ultimate-challenge-btn" style="display: none;">
-                🔥 DÉFI ULTIME : Casse-tête infernal ! 🔥
-            </button>
+        <section class="leaderboard-preview">
+            <h2>Top 5 du Classement</h2>
+            <div id="top-5-leaderboard" class="leaderboard-list">
+                <!-- Les utilisateurs du top 5 seront insérés ici par JS -->
+                <p>Chargement du classement...</p>
+            </div>
+            <a href="classement.html" class="btn btn-primary mt-4">Voir le classement complet</a>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Bac Français. Tous droits réservés.</p>
+            <nav class="footer-nav">
+                <a href="#">Mentions Légales</a>
+                <a href="#">Confidentialité</a>
+                <a href="#">Contact</a>
+            </nav>
         </div>
+    </footer>
 
-        <div class="menu-section" id="gameOptionsSection" style="display: none;">
-            <h2>Options de Jeu</h2>
-            <label>Mode de Jeu :</label>
-            <div class="quiz-options" id="gameModeOptions">
-                <button data-mode="normal" class="selected">Normal</button>
-                <button data-mode="survival">Survie</button>
-                <button data-mode="timetrial">Contre-la-montre</button>
-                <button data-mode="revision">Révision</button>
-            </div>
-
-            <label for="difficultySelect" style="margin-top: 15px;">Difficulté :</label>
-            <div class="quiz-options" id="difficultyOptions">
-                <button data-difficulty="any" class="selected">Aléatoire</button>
-                <button data-difficulty="easy">Facile</button>
-                <button data-difficulty="medium">Moyen</button>
-                <button data-difficulty="hard">Difficile</button>
-            </div>
-            
-            <button id="startSelectedQuizBtn" style="margin-top: 20px;">Démarrer le Quiz</button>
+    <!-- Modals pour Connexion / Inscription / Message -->
+    <div id="auth-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="modal-close-btn">&times;</button>
+            <h2 id="auth-modal-title">Connexion</h2>
+            <form id="auth-form">
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur :</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Mot de passe :</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" id="auth-submit-btn" class="btn btn-primary">Se connecter</button>
+            </form>
+            <p class="modal-switch-text">
+                <span id="switch-to-signup-text">Pas encore de compte ? <a href="#" id="switch-to-signup-link">Créer un compte</a></span>
+                <span id="switch-to-login-text" class="hidden">Déjà un compte ? <a href="#" id="switch-to-login-link">Se connecter</a></span>
+            </p>
         </div>
     </div>
 
-    <!-- Nouvelle section pour la dissertation (désactivée pour le moment) -->
-    <div id="dissertationContainer" style="display: none;">
-        <h1>Rédigez votre Dissertation</h1>
-        <p class="info-message">⚠️ La fonctionnalité de rédaction et d'analyse de dissertation est actuellement en développement. Veuillez utiliser le jeu de "Plan de Dissertation" !</p>
-        <div class="menu-section">
-            <h2>Sujet de Dissertation</h2>
-            <p id="dissertationTopicDisplay"></p>
-            <button id="selectDissertationTopicBtn">Choisir un autre sujet</button>
-            <div id="dissertationTopicSelection" style="display: none;">
-                <label for="dissertationSubjectSelect">Choisissez un sujet :</label>
-                <select id="dissertationSubjectSelect">
-                    <option value="" disabled selected>Sélectionnez un sujet</option>
-                    <option value="La poésie est-elle seulement une affaire de sentiments ?">La poésie est-elle seulement une affaire de sentiments ?</option>
-                    <option value="Dans quelle mesure le roman est-il une ouverture sur le monde ?">Dans quelle mesure le roman est-il une ouverture sur le monde ?</option>
-                    <option value="Le théâtre a-t-il pour seule vocation de divertir ?">Le théâtre a-t-il pour seule vocation de divertir ?</option>
-                    <option value="Les personnages de fiction nous aident-ils à mieux comprendre le réel ?">Les personnages de fiction nous aident-ils à mieux comprendre le réel ?</option>
-                </select>
-                <button id="confirmDissertationTopicBtn">Confirmer le sujet</button>
-            </div>
-        </div>
-
-        <div class="menu-section">
-            <h2>Votre Rédaction</h2>
-            <textarea id="dissertationTextarea" rows="20" placeholder="Commencez à rédiger votre plan de dissertation ou votre dissertation complète ici..."></textarea>
-            <button id="analyzeDissertationBtn" disabled>Analyser ma Dissertation</button> <!-- Désactivé -->
-            <div id="loadingIndicator" style="display: none; margin-top: 15px; color: var(--phrase-color);">Analyse en cours...</div>
-            <div id="dissertationFeedback" class="feedback" style="text-align: left;">
-                <!-- Le feedback de l'IA sera inséré ici -->
-            </div>
-            <button id="backToMenuFromDissertationBtn" style="margin-top: 20px;">Retour au Menu Principal</button>
-        </div>
-    </div>
-    <!-- Fin de la nouvelle section dissertation -->
-
-    <!-- Nouveau jeu de Plan de Dissertation -->
-    <div id="dissertationPlanGameContainer" style="display: none;">
-        <h1>Reconstituez le Plan</h1>
-        <p class="info-message">Réordonnez les blocs pour former un plan de dissertation correct.</p>
-        <div id="sortablePlanBlocks" class="sortable-list">
-            <!-- Les blocs de plan seront insérés ici -->
-        </div>
-        <button id="checkPlanBtn">Vérifier le Plan</button>
-        <div id="planFeedback" class="feedback"></div>
-        <button id="newPlanBtn" style="display: none;">Nouveau Plan</button>
-        <button id="backToMenuFromPlanBtn">Retour au Menu Principal</button>
-    </div>
-    <!-- Fin du nouveau jeu -->
-
-    <div id="quizContainer">
-        <h1 id="quizTitle"></h1>
-        <div id="highScoreDisplay"></div>
-        <div id="timerDisplay"></div>
-        <div class="progress-bar-container">
-            <div class="progress-bar-fill" id="progressBarFill"></div>
-        </div>
-        <div class="phrase" id="phrase"></div>
-        <form id="form">
-            <label for="answer" style="display: none;">Réponse :</label><br>
-            <select id="answer" required></select><br>
-            <button type="submit" id="submitBtn">Valider</button>
-        </form>
-        <div id="feedback" class="feedback"></div>
-        <div id="score" class="score"></div>
-        <button id="explanationBtn" style="display: none;">Voir l'explication</button>
-        <button id="nextBtn" style="display: none;">Suivant</button>
-        <div id="endQuizBtns" style="display: none;">
-            <button id="replayBtn">Rejouer</button>
-            <button id="backToMenuBtn">Retour au Menu</button>
-            <button id="viewQuizStatsBtn">Statistiques du Quiz</button>
+    <div id="message-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="modal-close-btn">&times;</button>
+            <h2 id="message-modal-title"></h2>
+            <p id="message-modal-text"></p>
+            <button class="btn btn-primary modal-ok-btn">OK</button>
         </div>
     </div>
 
-    <div id="statsContainer">
-        <h2>Statistiques de <span id="statsUserName"></span></h2>
-        <div id="statsDetails">
-            <!-- Les statistiques détaillées seront insérées ici -->
-            <p>Score total le plus élevé pour <span id="statsForQuizTitle"></span>: <span id="statsHighScore"></span></p>
-            <h3>Performance par Question (top 5 des plus ratées) :</h3>
-            <ul id="failedQuestionsList"></ul>
-        </div>
-        <button id="backToMainMenuFromStatsBtn">Retour au Menu Principal</button>
-    </div>
-</div>
+    <script src="js/script.js"></script>
+    <script>
+        // Initialisation de la page d'accueil après le chargement du DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mise à jour du message de bienvenue et des stats si un utilisateur est connecté
+            const userManager = UserManager.getInstance();
+            userManager.init(); // Tente de charger l'utilisateur depuis localStorage
 
-<!-- Importation du fichier JavaScript -->
-<script src="script.js" defer></script>
+            if (userManager.currentUser) {
+                document.getElementById('btn-login-header').classList.add('hidden');
+                document.getElementById('btn-signup-header').classList.add('hidden');
+                const welcomeMessageElement = document.getElementById('welcome-message');
+                welcomeMessageElement.textContent = `Bienvenue, ${userManager.currentUser.username} !`;
+                document.getElementById('user-profile-info').classList.remove('hidden');
+
+                // Mettre à jour les stats de la semaine
+                document.getElementById('stats-quiz-success').textContent = userManager.currentUser.quizHistory.filter(q => q.success).length;
+                document.getElementById('stats-fiches-read').textContent = userManager.currentUser.fichesConsulted.length;
+                // Afficher le temps en minutes
+                document.getElementById('stats-time-spent').textContent = Math.round(userManager.currentUser.timeSpent / 60000); // Convertir ms en minutes
+
+            } else {
+                // Si aucun utilisateur n'est connecté, cacher les stats (ou afficher 0)
+                document.getElementById('stats-quiz-success').textContent = '0';
+                document.getElementById('stats-fiches-read').textContent = '0';
+                document.getElementById('stats-time-spent').textContent = '0';
+            }
+
+            // Afficher le top 5 du classement (même si aucun utilisateur n'est connecté)
+            const allUsers = userManager.getAllUsers();
+            const sortedUsers = allUsers.sort((a, b) => b.score - a.score).slice(0, 5);
+            const leaderboardList = document.getElementById('top-5-leaderboard');
+            leaderboardList.innerHTML = ''; // Nettoyer le message de chargement
+
+            if (sortedUsers.length > 0) {
+                sortedUsers.forEach((user, index) => {
+                    const userEntry = document.createElement('div');
+                    userEntry.className = 'leaderboard-entry';
+                    userEntry.innerHTML = `
+                        <span>#${index + 1} ${user.username}</span>
+                        <span>Score: ${user.score}</span>
+                    `;
+                    leaderboardList.appendChild(userEntry);
+                });
+            } else {
+                leaderboardList.innerHTML = '<p>Aucun utilisateur enregistré pour le moment. Créez un compte et commencez à réviser !</p>';
+            }
+        });
+    </script>
 </body>
 </html>

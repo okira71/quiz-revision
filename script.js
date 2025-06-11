@@ -216,7 +216,7 @@ const dissertationPlanElements = [
 // Définition du défi ultime
 const ultimateChallengeData = {
     quizId: "ultimate-challenge",
-    title: "🔥 DÉFI ULTIME : Casse-tête infernal ! 🔥",
+    title: "🔥 DÉFI ULTIME : Casse-tête infernal ! �",
     defaultLength: 50, // 50 questions
     timePerQuestion: 10, // 10 secondes par question
     lives: 3, // 3 vies
@@ -319,6 +319,7 @@ function unlockUltimateChallenge() {
 
 
 function createUser() {
+    console.log("createUser button clicked");
     const username = usernameInput.value.trim();
     if (username.length < 3) {
         showMessageBox("Le nom d'utilisateur doit contenir au moins 3 caractères.");
@@ -349,6 +350,7 @@ function createUser() {
     deleteUserBtn.style.display = 'block';
     renderProfileList();
     updateProgressBars(); // Update progress for new user
+    usernameInput.value = ''; // Clear input field
 
     // Easter egg check
     if (username.toLowerCase() === 'le kk' || username.toLowerCase() === 'cuit') {
@@ -357,6 +359,7 @@ function createUser() {
 }
 
 function loadUser(username) {
+    console.log("loadUser button clicked for:", username);
     if (!users[username]) {
         showMessageBox("Profil non trouvé.");
         return;
@@ -382,6 +385,7 @@ function loadUser(username) {
     deleteUserBtn.style.display = 'block';
     renderProfileList();
     updateProgressBars(); // Update progress for loaded user
+    usernameInput.value = ''; // Clear input field
 
     // Easter egg check
     if (username.toLowerCase() === 'le kk' || username.toLowerCase() === 'cuit') {
@@ -390,6 +394,7 @@ function loadUser(username) {
 }
 
 function deleteCurrentUser() {
+    console.log("deleteCurrentUser button clicked");
     if (!activeUser) {
         showMessageBox("Aucun profil actif à supprimer.");
         return;
@@ -397,6 +402,7 @@ function deleteCurrentUser() {
     showMessageBox(`Êtes-vous sûr de vouloir supprimer le profil de '${activeUser.name}' ? Toutes les statistiques associées seront perdues.<br><button id="confirmDeleteUserBtn" class="message-box-btn">Oui</button><button id="cancelDeleteUserBtn" class="message-box-btn">Non</button>`);
 
     document.getElementById('confirmDeleteUserBtn').addEventListener('click', () => {
+        console.log("Confirm delete user button clicked");
         delete users[activeUser.id];
         activeUser = null;
         saveUsers();
@@ -405,7 +411,7 @@ function deleteCurrentUser() {
         viewStatsBtn.style.display = 'none';
         deleteUserBtn.style.display = 'none';
         renderProfileList();
-        showMenu();
+        showMenu(); // Calls updateProgressBars internally
         const messageBox = document.querySelector('.message-box');
         if (messageBox) {
             document.body.removeChild(messageBox);
@@ -413,6 +419,7 @@ function deleteCurrentUser() {
     });
 
     document.getElementById('cancelDeleteUserBtn').addEventListener('click', () => {
+        console.log("Cancel delete user button clicked");
         const messageBox = document.querySelector('.message-box');
         if (messageBox) {
             document.body.removeChild(messageBox);
@@ -440,7 +447,10 @@ function renderProfileList() {
         if (activeUser && activeUser.id === userId) {
             userBtn.classList.add('selected');
         }
-        userBtn.addEventListener('click', () => loadUser(userId));
+        userBtn.addEventListener('click', () => {
+            console.log("Profile button clicked for:", userId);
+            loadUser(userId);
+        });
         profileList.appendChild(userBtn);
     }
 }
@@ -448,6 +458,7 @@ function renderProfileList() {
 // --- FONCTIONS DE GESTION DES QUIZ (Chargement & Sélection) ---
 
 function selectQuiz(quizId) {
+    console.log("selectQuiz called for:", quizId);
     if (!activeUser) {
         showMessageBox("Veuillez créer ou charger un profil utilisateur avant de choisir un quiz.");
         return;
@@ -558,6 +569,7 @@ function saveQuizStats(quizId, finalScore, totalQuestionsPlayed, questionResults
 }
 
 function displayOverallStats() {
+    console.log("displayOverallStats button clicked");
     if (!activeUser) {
         showMessageBox("Veuillez charger un profil pour voir les statistiques.");
         return;
@@ -676,6 +688,7 @@ function stringToHash(str) {
 }
 
 function showMenu() {
+    console.log("showMenu called");
     selectionContainer.style.display = 'block';
     quizContainer.style.display = 'none';
     statsContainer.style.display = 'none';
@@ -696,6 +709,7 @@ function showMenu() {
 }
 
 function startQuiz() {
+    console.log("startQuiz button clicked");
     if (!currentQuizData) {
         showMessageBox("Veuillez sélectionner un quiz.");
         return;
@@ -884,6 +898,7 @@ function handleAnswer(isCorrect) {
 }
 
 form.addEventListener("submit", function(e) {
+    console.log("Form submitted (submitBtn clicked)");
     e.preventDefault();
     submitBtn.disabled = true;
     stopTimer();
@@ -895,6 +910,7 @@ form.addEventListener("submit", function(e) {
 });
 
 explanationBtn.addEventListener("click", () => {
+    console.log("explanationBtn clicked");
     const currentQuestion = questionsForThisQuiz[currentQuestionIndex];
     const explicationText = `<br><br><strong>Explication :</strong><br>${currentQuestion.explication}`;
 
@@ -913,6 +929,7 @@ explanationBtn.addEventListener("click", () => {
 });
 
 nextBtn.addEventListener("click", () => {
+    console.log("nextBtn clicked");
     currentQuestionIndex++;
     updateQuestion();
 });
@@ -956,8 +973,12 @@ function endQuiz(survivalFailed = false) {
     viewQuizStatsBtn.style.display = 'block';
 }
 
-replayBtn.addEventListener('click', startQuiz);
+replayBtn.addEventListener('click', () => {
+    console.log("replayBtn clicked");
+    startQuiz();
+});
 viewQuizStatsBtn.addEventListener('click', () => {
+    console.log("viewQuizStatsBtn clicked");
     selectionContainer.style.display = 'none';
     quizContainer.style.display = 'none';
     dissertationContainer.style.display = 'none';
@@ -1020,7 +1041,10 @@ viewQuizStatsBtn.addEventListener('click', () => {
     }
 });
 
-backToMainMenuFromStatsBtn.addEventListener('click', showMenu);
+backToMainMenuFromStatsBtn.addEventListener('click', () => {
+    console.log("backToMainMenuFromStatsBtn clicked");
+    showMenu();
+});
 
 // --- LOGIQUE DU THÈME SOMBRE ---
 function applyTheme(theme) {
@@ -1029,6 +1053,7 @@ function applyTheme(theme) {
     localStorage.setItem('quizTheme', theme);
 }
 themeToggleBtn.addEventListener('click', () => {
+    console.log("themeToggleBtn clicked");
     const currentTheme = localStorage.getItem('quizTheme') || 'light';
     applyTheme(currentTheme === 'light' ? 'dark' : 'light');
 });
@@ -1036,6 +1061,7 @@ themeToggleBtn.addEventListener('click', () => {
 // --- GESTION DES SÉLECTIONS D'OPTIONS DE JEU ---
 gameModeOptions.addEventListener('click', (e) => {
     if (e.target.tagName === 'BUTTON') {
+        console.log("Game mode option clicked:", e.target.dataset.mode);
         Array.from(gameModeOptions.children).forEach(btn => btn.classList.remove('selected'));
         e.target.classList.add('selected');
         selectedGameMode = e.target.dataset.mode;
@@ -1045,6 +1071,7 @@ gameModeOptions.addEventListener('click', (e) => {
 
 difficultyOptions.addEventListener('click', (e) => {
     if (e.target.tagName === 'BUTTON') {
+        console.log("Difficulty option clicked:", e.target.dataset.difficulty);
         Array.from(difficultyOptions.children).forEach(btn => btn.classList.remove('selected'));
         e.target.classList.add('selected');
         selectedDifficulty = e.target.dataset.difficulty;
@@ -1053,17 +1080,23 @@ difficultyOptions.addEventListener('click', (e) => {
 });
 
 startFiguresBtn.addEventListener('click', () => {
+    console.log("startFiguresBtn clicked");
     selectQuiz('figures');
     gameOptionsSection.style.display = 'block'; // Show options after selecting quiz
 });
 startTonalitesBtn.addEventListener('click', () => {
+    console.log("startTonalitesBtn clicked");
     selectQuiz('tonalites');
     gameOptionsSection.style.display = 'block'; // Show options after selecting quiz
 });
-startSelectedQuizBtn.addEventListener('click', startQuiz);
+startSelectedQuizBtn.addEventListener('click', () => {
+    console.log("startSelectedQuizBtn clicked");
+    startQuiz();
+});
 
 // --- FONCTIONS POUR LA DISSERTATION (Simulation) ---
 function showDissertationSection() {
+    console.log("showDissertationSection called");
     if (!activeUser) {
         showMessageBox("Veuillez créer ou charger un profil utilisateur pour rédiger une dissertation.");
         return;
@@ -1097,6 +1130,7 @@ function showDissertationSection() {
 }
 
 startDissertationBtn.addEventListener('click', () => {
+    console.log("startDissertationBtn clicked (disabled functionality)");
     showMessageBox("La fonctionnalité de rédaction et d'analyse de dissertation est actuellement en développement. Veuillez utiliser le jeu de 'Plan de Dissertation' à la place !");
     // Optionally still show the section but keep analyze button disabled
     showDissertationSection();
@@ -1104,6 +1138,7 @@ startDissertationBtn.addEventListener('click', () => {
 
 
 selectDissertationTopicBtn.addEventListener('click', () => {
+    console.log("selectDissertationTopicBtn clicked");
     dissertationTopicDisplay.textContent = 'Aucun sujet sélectionné.';
     selectDissertationTopicBtn.style.display = 'none';
     dissertationTopicSelection.style.display = 'block';
@@ -1111,6 +1146,7 @@ selectDissertationTopicBtn.addEventListener('click', () => {
 });
 
 confirmDissertationTopicBtn.addEventListener('click', () => {
+    console.log("confirmDissertationTopicBtn clicked");
     const selectedTopic = dissertationSubjectSelect.value;
     if (selectedTopic) {
         selectedDissertationTopic = selectedTopic;
@@ -1124,13 +1160,17 @@ confirmDissertationTopicBtn.addEventListener('click', () => {
 });
 
 analyzeDissertationBtn.addEventListener('click', async () => {
+    console.log("analyzeDissertationBtn clicked (disabled functionality)");
     // This button is now disabled in HTML, but keeping the function for completeness
     showMessageBox("La fonctionnalité d'analyse de dissertation est désactivée pour le moment.");
     return; // Prevent execution
 });
 
 
-backToMenuFromDissertationBtn.addEventListener('click', showMenu);
+backToMenuFromDissertationBtn.addEventListener('click', () => {
+    console.log("backToMenuFromDissertationBtn clicked");
+    showMenu();
+});
 
 /**
  * Simule l'appel à une API backend pour l'analyse de dissertation par une IA.
@@ -1195,7 +1235,10 @@ async function callAIAnalysisAPI(topic, content) {
 }
 
 // --- NOUVEAU JEU : PLAN DE DISSERTATION ---
-startDissertationPlanBtn.addEventListener('click', showDissertationPlanGame);
+startDissertationPlanBtn.addEventListener('click', () => {
+    console.log("startDissertationPlanBtn clicked");
+    showDissertationPlanGame();
+});
 
 function showDissertationPlanGame() {
     if (!activeUser) {
@@ -1212,6 +1255,7 @@ function showDissertationPlanGame() {
 }
 
 function generateNewPlan() {
+    console.log("generateNewPlan called");
     planFeedback.innerHTML = '';
     checkPlanBtn.style.display = 'block';
     newPlanBtn.style.display = 'none';
@@ -1256,6 +1300,7 @@ function addDragAndDropListeners() {
     }
 
     sortablePlanBlocks.addEventListener('dragstart', (e) => {
+        console.log("dragstart detected");
         draggedItem = e.target;
         if (!draggedItem.classList.contains('plan-block')) { // Ensure we are dragging a plan-block
             draggedItem = null;
@@ -1271,6 +1316,7 @@ function addDragAndDropListeners() {
     });
 
     sortablePlanBlocks.addEventListener('dragend', () => {
+        console.log("dragend detected");
         // Cleanup: remove placeholder and remove dragging class
         if (placeholder.parentNode) {
             placeholder.parentNode.removeChild(placeholder);
@@ -1310,6 +1356,7 @@ function addDragAndDropListeners() {
     });
 
     sortablePlanBlocks.addEventListener('drop', () => {
+        console.log("drop detected");
         if (draggedItem && placeholder.parentNode) {
             // Replace the placeholder with the actual dragged item
             placeholder.parentNode.replaceChild(draggedItem, placeholder);
@@ -1317,7 +1364,10 @@ function addDragAndDropListeners() {
     });
 }
 
-checkPlanBtn.addEventListener('click', checkPlanOrder);
+checkPlanBtn.addEventListener('click', () => {
+    console.log("checkPlanBtn clicked");
+    checkPlanOrder();
+});
 
 function checkPlanOrder() {
     const currentOrderElements = Array.from(sortablePlanBlocks.children);
@@ -1353,8 +1403,14 @@ function checkPlanOrder() {
     newPlanBtn.style.display = 'block';
 }
 
-newPlanBtn.addEventListener('click', generateNewPlan);
-backToMenuFromPlanBtn.addEventListener('click', showMenu);
+newPlanBtn.addEventListener('click', () => {
+    console.log("newPlanBtn clicked");
+    generateNewPlan();
+});
+backToMenuFromPlanBtn.addEventListener('click', () => {
+    console.log("backToMenuFromPlanBtn clicked");
+    showMenu();
+});
 
 // --- FONCTIONS DE GESTION DE LA PROGRESSION ET DU DÉFI ULTIME ---
 
@@ -1406,7 +1462,10 @@ function updateProgressBars() {
     }
 }
 
-startUltimateChallengeBtn.addEventListener('click', startUltimateChallenge);
+startUltimateChallengeBtn.addEventListener('click', () => {
+    console.log("startUltimateChallengeBtn clicked");
+    startUltimateChallenge();
+});
 
 function startUltimateChallenge() {
     if (!activeUser) {
@@ -1469,6 +1528,7 @@ async function initialize() {
     showMenu(); // Call showMenu to ensure progress bars are updated on load
 }
 
+// Attach event listeners
 createUserBtn.addEventListener('click', createUser);
 loadUserBtn.addEventListener('click', () => {
     const username = usernameInput.value.trim();
@@ -1483,3 +1543,4 @@ deleteUserBtn.addEventListener('click', deleteCurrentUser);
 
 initialize();
 
+�

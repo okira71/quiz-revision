@@ -1,0 +1,36 @@
+[
+    {
+        "id": "quiz-humanisme-1",
+        "title": "Quiz sur l'Humanisme",
+        "category": "Mouvements Littéraires",
+        "questions": [
+            {
+                "question": "Quel siècle l'Humanisme concerne-t-il principalement ?",
+                "options": ["XIVe siècle", "XVe et XVIe siècles", "XVIIe siècle", "XVIIIe siècle"],
+                "answer": "XVe et XVIe siècles"
+            },
+            {
+                "question": "Quel est le principe central de l'Humanisme ?",
+                "options": ["Le culte de la raison", "Le retour à l'Antiquité et la confiance en l'homme", "L'exaltation de la nature", "La critique sociale"],
+                "answer": "Le retour à l'Antiquité et la confiance en l'homme"
+            }
+        ]
+    },
+    {
+        "id": "quiz-baudelaire-1",
+        "title": "Quiz sur Baudelaire",
+        "category": "Auteurs",
+        "questions": [
+            {
+                "question": "Quel est le titre de l'œuvre majeure de Charles Baudelaire ?",
+                "options": ["Les Misérables", "À la recherche du temps perdu", "Les Fleurs du Mal", "Le Rouge et le Noir"],
+                "answer": "Les Fleurs du Mal"
+            },
+            {
+                "question": "Quel thème Baudelaire explore-t-il souvent dans ses poèmes ?",
+                "options": ["La joie de vivre", "L'aventure et l'exotisme", "Le spleen et l'idéal", "La nature et les paysages"],
+                "answer": "Le spleen et l'idéal"
+            }
+        ]
+    }
+]

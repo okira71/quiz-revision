@@ -1,18 +1,30 @@
-
-    "title": "📘 Tonalités Littéraires",
-    "quizId": "tonalites",
-    "defaultLength": null,
-    "questions": [
-        { "prompt": "Le texte cherche à faire rire ou sourire.", "answer": "Tonalité comique", "explication": "Situation absurde ou exagérée, jeux de mots, répétitions, caricature, ironie ou personnages ridicules.", "difficulty": "easy" },
-        { "prompt": "Le personnage est condamné d’avance, il n’y a pas d’issue.", "answer": "Tonalité tragique", "explication": "Le personnage est face au destin, à la mort. On trouve un vocabulaire du malheur, du destin, de la fatalité et un ton grave et solennel.", "difficulty": "medium" },
-        { "prompt": "Le texte veut toucher le lecteur, montrer la douleur ou la souffrance.", "answer": "Tonalité pathétique", "explication": "On trouve un vocabulaire de la tristesse, de la douleur, des phrases courtes ou exclamatives et des apostrophes (on parle à quelqu’un ou à Dieu).", "difficulty": "medium" },
-        { "prompt": "Le texte exprime les émotions personnelles (amour, nostalgie, joie, etc.).", "answer": "Tonalité lyrique", "explication": "Emploi de la 1re personne, champs lexicaux des sentiments (amour, tristesse, bonheur…) et ponctuation expressive (! ? …).", "difficulty": "easy" },
-        { "prompt": "C’est du lyrisme triste, souvent sur la mort, l’absence ou le temps qui passe.", "answer": "Tonalité élégiaque", "explication": "C'est une forme de lyrisme mais plus mélancolique, souvent dans des poèmes (ex : Lamartine, Hugo).", "difficulty": "hard" },
-        { "prompt": "Le texte met en valeur un héros dans un combat grandiose.", "answer": "Tonalité épique", "explication": "Utilisation d'exagérations (hyperboles), de nombreux adjectifs, d'un vocabulaire du combat et du courage, et description d'actions spectaculaires.", "difficulty": "medium" },
-        { "prompt": "Le texte attaque une idée ou une personne, parfois violemment.", "answer": "Tonalité polémique", "explication": "On repère un vocabulaire péjoratif, des questions oratoires, des interpellations, de l'ironie et des critiques fortes.", "difficulty": "hard" },
-        { "prompt": "Le texte se moque pour dénoncer.", "answer": "Tonalité satirique", "explication": "On trouve un humour grinçant, un détournement d’idées ou de situations, de l'ironie et des caricatures.", "difficulty": "hard" },
-        { "prompt": "Le texte veut transmettre un savoir ou une leçon.", "answer": "Tonalité didactique", "explication": "Les phrases sont claires et structurées, avec des exemples ou des définitions, dans un style logique et parfois impératif.", "difficulty": "easy" },
-        { "prompt": "Quelque chose d’étrange ou de surnaturel arrive dans un monde réaliste, créant une hésitation.", "answer": "Tonalité fantastique", "explication": "Il y a une hésitation entre rêve et réalité, un vocabulaire du doute (peut-être, on dirait que…) et une ambiance inquiétante.", "difficulty": "medium" },
-        { "prompt": "Le texte présente un monde magique, où le surnaturel est accepté naturellement.", "answer": "Tonalité merveilleuse", "explication": "On trouve des éléments magiques (fées, dragons…) dans un vocabulaire féérique et imaginaire, sans aucun doute chez les personnages.", "difficulty": "easy" }
-    ]
-}
+[
+    {
+        "id": "humanisme",
+        "title": "L'Humanisme",
+        "category": "Mouvements Littéraires",
+        "content": "L'Humanisme est un mouvement culturel européen des XVe et XVIe siècles, caractérisé par un retour aux textes antiques et une nouvelle confiance en l'homme.",
+        "keywords": ["Renaissance", "érudition", "dignité humaine"]
+    },
+    {
+        "id": "romantisme",
+        "title": "Le Romantisme",
+        "category": "Mouvements Littéraires",
+        "content": "Le Romantisme, au XIXe siècle, est un mouvement qui exprime les passions et les sentiments, la nature et l'individualisme. Il privilégie le moi et l'émotion.",
+        "keywords": ["passion", "nature", "individualisme", "Victor Hugo", "Lamartine"]
+    },
+    {
+        "id": "baudelaire",
+        "title": "Charles Baudelaire",
+        "category": "Auteurs",
+        "content": "Poète français du XIXe siècle, figure majeure du symbolisme et du décadentisme. Son œuvre la plus célèbre est 'Les Fleurs du Mal'. Il explore la beauté et la laideur, le bien et le mal, la modernité et l'ennui.",
+        "keywords": ["poésie", "symbolisme", "Fleurs du Mal", "spleen"]
+    },
+    {
+        "id": "analepse",
+        "title": "L'Analepse (Flashback)",
+        "category": "Figures de style",
+        "content": "L'analepse est une figure de rhétorique qui consiste à évoquer un événement antérieur au moment du récit principal. Elle est souvent utilisée pour éclairer la situation présente.",
+        "keywords": ["flashback", "récit", "temps"]
+    }
+]

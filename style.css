@@ -127,9 +127,9 @@ body {
     color: var(--header-color);
     margin-top: 0;
     margin-bottom: 15px;
-    font-size: 1.6em;
     border-bottom: 1px solid var(--select-border);
     padding-bottom: 10px;
+    font-size: 1.6em; /* Increased font size for h2 */
 }
 .menu-section label {
     display: block;
